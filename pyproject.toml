@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentpass"
-version = "1.0.0-beta1"
+version = "1.0.0-beta2"
 description = "M2M Wallet & Passport Infrastructure for AI Agents"
 readme = "README.md"
 license = {text = "MIT"}
