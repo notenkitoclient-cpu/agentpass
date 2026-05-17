@@ -58,3 +58,73 @@ class SpendingFrozenError(Exception):
             "burst_count": self.burst_count,
             "error": "SpendingFrozenError",
         }
+
+
+# ---------------------------------------------------------------------------
+# EXP-005c: Multi-agent keypair isolation errors
+# ---------------------------------------------------------------------------
+
+class SignerMismatchError(Exception):
+    """
+    Token sub (agent_id) does not match the owner of the signing key (EXP-005c).
+
+    HTTP 403 — the token is cryptographically valid but the claimed identity
+    does not match the registered key owner.
+    """
+
+    http_status: int = 403
+    error_code: str = "SIGNER_MISMATCH"
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        key_id: str,
+        claimed_agent_id: str,
+        key_owner_agent_id: str,
+    ) -> None:
+        super().__init__(message)
+        self.key_id = key_id
+        self.claimed_agent_id = claimed_agent_id
+        self.key_owner_agent_id = key_owner_agent_id
+
+
+class CompromisedKeyError(Exception):
+    """
+    The signing key has been marked compromised (EXP-005c).
+
+    HTTP 403 — token is structurally valid but the key is no longer trusted.
+    """
+
+    http_status: int = 403
+    error_code: str = "SIGNER_COMPROMISED"
+
+    def __init__(self, message: str, *, key_id: str) -> None:
+        super().__init__(message)
+        self.key_id = key_id
+
+
+class UnknownKeyIdError(Exception):
+    """
+    The kid in the token header is not registered in AgentKeyRegistry (EXP-005c).
+
+    HTTP 401 — key is unrecognized; cannot verify signer identity.
+    """
+
+    http_status: int = 401
+    error_code: str = "UNKNOWN_KEY_ID"
+
+    def __init__(self, message: str, *, key_id: str) -> None:
+        super().__init__(message)
+        self.key_id = key_id
+
+
+class UnknownAgentIdError(Exception):
+    """
+    The agent_id is not registered in AgentKeyRegistry (EXP-005c).
+
+    HTTP 401 — agent identity is unrecognized.
+    """
+
+    http_status: int = 401
+    error_code: str = "UNKNOWN_AGENT_ID"

@@ -155,3 +155,58 @@ class AuditLog:
             "status": "frozen",
             "reason": "replay_burst_detected",
         }
+
+    @staticmethod
+    def make_signer_verified_record(
+        *,
+        agent_id: str,
+        key_id: str,
+        jti: str,
+        nonce: str,
+    ) -> dict:
+        """Build a signer_verified audit record (EXP-005c)."""
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "signer_verified",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent_id": agent_id,
+            "key_id": key_id,
+            "jti": jti,
+            "signer_status": "active",
+            "signature_verified": True,
+            "nonce": nonce,
+            "status": "approved",
+        }
+
+    @staticmethod
+    def make_signer_rejected_record(
+        *,
+        key_id: str,
+        reason: str,
+        nonce: str,
+        signer_status: str = "unknown",
+        signature_verified: bool = False,
+        agent_id: str | None = None,
+        jti: str | None = None,
+    ) -> dict:
+        """
+        Build a signer_rejected audit record (EXP-005c).
+
+        reason values:
+          "signer_compromised" — key is marked compromised
+          "unknown_key_id"     — kid not in registry
+          "signer_mismatch"    — sub ≠ key owner (signature valid, identity forged)
+        """
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "signer_rejected",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent_id": agent_id,
+            "key_id": key_id,
+            "jti": jti,
+            "reason": reason,
+            "signer_status": signer_status,
+            "signature_verified": signature_verified,
+            "nonce": nonce,
+            "status": "rejected",
+        }
