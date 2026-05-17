@@ -1,0 +1,101 @@
+"""
+EXP-005a: Append-only JSONL audit log for sandbox experiments.
+
+Design constraints:
+  - Append-only: existing entries are never modified or deleted
+  - Each line is a self-contained JSON object (JSONL format)
+  - read_all() enables replay validation — any budget_exceeded event
+    can be reconstructed and re-verified against SandboxBudgetControl
+"""
+
+from __future__ import annotations
+
+import json
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+# Fields that every budget_exceeded record must contain.
+REQUIRED_FIELDS: frozenset[str] = frozenset({
+    "event_id",
+    "event_type",
+    "timestamp",
+    "agent_id",
+    "amount",
+    "budget_limit",
+    "nonce",
+    "status",
+    "reason",
+})
+
+
+class AuditLog:
+    """
+    Append-only JSONL audit log.
+
+    Usage:
+        log = AuditLog(Path("audit_exp005a.jsonl"))
+        record = log.make_budget_exceeded_record(
+            agent_id="agent-001", amount=0.002,
+            budget_limit=0.001, nonce=str(uuid.uuid4()),
+        )
+        log.append(record)
+        all_events = log.read_all()
+    """
+
+    def __init__(self, path: Path) -> None:
+        self._path = path
+
+    # ------------------------------------------------------------------
+    # Write
+    # ------------------------------------------------------------------
+
+    def append(self, record: dict) -> None:
+        """Append one record as a JSONL line. Creates the file if absent."""
+        with self._path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    # ------------------------------------------------------------------
+    # Read
+    # ------------------------------------------------------------------
+
+    def read_all(self) -> list[dict]:
+        """
+        Return all records as a list of dicts.
+        Returns [] if the file does not exist or is empty.
+        """
+        if not self._path.exists():
+            return []
+        lines = self._path.read_text(encoding="utf-8").strip().splitlines()
+        return [json.loads(line) for line in lines if line.strip()]
+
+    # ------------------------------------------------------------------
+    # Record factories
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def make_budget_exceeded_record(
+        *,
+        agent_id: str,
+        amount: float,
+        budget_limit: float,
+        nonce: str,
+    ) -> dict:
+        """
+        Build a budget_exceeded audit record with all required fields.
+
+        The returned dict satisfies REQUIRED_FIELDS and can be passed
+        directly to append(). All fields needed for replay validation
+        (amount, budget_limit) are included.
+        """
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "budget_exceeded",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent_id": agent_id,
+            "amount": amount,
+            "budget_limit": budget_limit,
+            "nonce": nonce,
+            "status": "rejected",
+            "reason": "budget_exceeded",
+        }
