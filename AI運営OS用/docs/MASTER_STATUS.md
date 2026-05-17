@@ -6,45 +6,41 @@ Last Updated: 2026-05-17
 
 # Current STATE
 
-STATE ID: STATE-2026-05-17-EXTERNAL-INSTALL-VERIFIED
+STATE ID: STATE-2026-05-17-SESSION-END-STABLE
 
 Current Phase:
-OSS Distribution Verification Phase
+Knowledge Governance and OSS Distribution Stabilization
 
 Current Priority:
-Stable external distribution and onboarding readiness
+State synchronization / onboarding stability / distribution readiness
 
 Current Focus:
-- external install stability
-- package distribution integrity
-- OSS onboarding quality
-- replay-safe architecture preservation
-- public/private strategy boundary management
+- AI-readable governance
+- onboarding clarity
+- public/private boundary preservation
+- distribution stability
+- developer experience optimization
 
 Current Risks:
-- pyproject.toml SPDX migration warning
-- TestPyPI propagation delay
-- onboarding friction for new developers
-- accidental exposure of internal strategy roadmap
+- knowledge divergence between docs
+- onboarding drift
+- premature public expansion
+- internal strategy leakage
 
 Next Required Action:
-Prepare next ACTIVE TASK selection between:
-- EXP-008 Revocation Layer
-- OSS onboarding polish
-- public launch preparation
+次セッション開始時にこのファイルを読み、
+TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
+推奨: TASK-PRODUCTION-PYPI-RELEASE（TestPyPI 検証済みのため）
 
 ---
 
 # Active Task
 
-- Task ID: TASK-NEXT-PHASE-SELECTION
-- Title: 次フェーズ確定（EXP-008 / OSS polish / Launch prep）
+- Task ID: TASK-NONE
+- Title: セッション終了 — 次セッション開始時に TASK QUEUE から選択
 - Owner Channel: PM進捗管理
-- Status: ACTIVE
-- Started At: 2026-05-17
-- Completion Criteria:
-  次ACTIVE TASKが1つに確定され、
-  TASK QUEUEとROADMAPが整合した状態になること
+- Status: STANDBY
+- Note: 次セッションの冒頭で P1 タスクを1つ ACTIVE に昇格させること
 
 ---
 
@@ -52,13 +48,15 @@ Prepare next ACTIVE TASK selection between:
 
 | Priority | Task ID | Task | Status | Owner Channel | Trigger | Notes |
 |---|---|---|---|---|---|---|
-| P1 | TASK-EXP008-REVOCATION-DESIGN | Token Revocation Layer設計 | PLANNED | Sandbox実験室 | next phase selection | revocation boundary experiment |
-| P1 | TASK-OSS-ONBOARDING-POLISH | README / install UX改善 | QUEUED | 発信・広報室 | external install verification complete | OSS onboarding optimization |
-| P1 | TASK-PUBLIC-LAUNCH-PREP | 初回OSS公開準備 | QUEUED | CEO戦略室 | onboarding polish complete | Wave1 expansion |
+| P1 | TASK-MINIMAL-DEMO-REPO | examples/ デモ構築 | QUEUED | 発信・広報室 | onboarding stabilization complete | copy-paste runnable demo |
+| P1 | TASK-AI-OPERATING-MAP | AI運営OS構造図作成 | QUEUED | AIエージェント設計室 | governance stabilization | knowledge routing visualization |
+| P1 | TASK-KNOWLEDGE-SYNC-RULES | docs同期ルール定義 | QUEUED | PM進捗管理 | governance phase | prevent state divergence |
+| P1 | TASK-PRODUCTION-PYPI-RELEASE | 本番PyPI公開 | QUEUED | 技術相談室 | onboarding/demo stabilization | official public distribution |
+| P2 | TASK-FIRST-OSS-POST | 初回OSS発信 | QUEUED | 発信・広報室 | production PyPI release | distribution discovery |
+| P2 | TASK-EXP008-REVOCATION-DESIGN | Token Revocation Layer設計 | PLANNED | Sandbox実験室 | distribution validation complete | revocation boundary experiment |
 | P2 | TASK-PYPROJECT-LICENSE-CLEANUP | SPDX license形式へ移行 | QUEUED | 技術相談室 | packaging stabilization | setuptools deprecation cleanup |
-| P2 | TASK-TESTPYPI-INSTALL-DOC | TestPyPI install手順README追加 | QUEUED | 発信・広報室 | onboarding polish phase | developer onboarding |
+| P2 | TASK-TESTPYPI-INSTALL-DOC | TestPyPI install手順README追加 | QUEUED | 発信・広報室 | onboarding stabilization | developer onboarding |
 | P2 | TASK-BRANCH-PROTECTION | branch protection運用確認 | ACTIVE-EXTERNAL | GitHub UI | Team plan migration required | private repo limitation |
-| P2 | TASK-PYPI-PUBLISH | Official PyPI publish | BLOCKED | 技術相談室 | onboarding + release readiness | production release |
 
 ---
 
@@ -75,6 +73,10 @@ Prepare next ACTIVE TASK selection between:
 | TASK-WAVE1-REALIGN | ROADMAP / Wave1整合性修正 | 2026-05-17 |
 | TASK-SECURITY-MD | SECURITY.md作成 | 2026-05-17 |
 | TASK-EXTERNAL-INSTALL-VERIFY | TestPyPI upload + external install verification | 2026-05-17 |
+| TASK-PUBLIC-DOC-SLIMMING | 公開README/PyPIから内部戦略除外 | 2026-05-17 |
+| TASK-OSS-ONBOARDING-POLISH | README onboarding最適化 | 2026-05-17 |
+| TASK-KNOWLEDGE-GOVERNANCE | DECISIONS.md作成と知識統制開始 | 2026-05-17 |
+| TASK-PAUSE-POINT-STABILIZATION | セッション終了状態の固定・メモリ更新・再開容易性確保 | 2026-05-17 |
 
 ---
 
@@ -112,6 +114,7 @@ Prepare next ACTIVE TASK selection between:
 - Agent keypair isolation verification operational
 - External package install verified
 - TestPyPI distribution verified
+- AI-readable governance structure operational
 - External API structure operational
 
 ---
@@ -122,6 +125,25 @@ Prepare next ACTIVE TASK selection between:
 - EXP-005b Multi-agent JTI Collision
 - EXP-005c Agent Keypair Isolation
 - EXP-006 Replay / Collision Verification
+
+---
+
+# Governance Assets
+
+## State Management
+- MASTER_STATUS.md
+
+## Experiment Knowledge
+- EXPERIMENT_LOG.md
+
+## Strategic Decisions
+- docs/DECISIONS.md
+
+## Public Documentation
+- README.md
+
+## Future Direction
+- ROADMAP.md
 
 ---
 
