@@ -138,3 +138,20 @@ class AuditLog:
             "status": "rejected",
             "reason": "replay_detected",
         }
+
+    @staticmethod
+    def make_spending_frozen_record(
+        *,
+        burst_count: int,
+        nonce: str,
+    ) -> dict:
+        """Build a spending_frozen audit record (EXP-006)."""
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "spending_frozen",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "burst_count": burst_count,
+            "nonce": nonce,
+            "status": "frozen",
+            "reason": "replay_burst_detected",
+        }
