@@ -1,8 +1,8 @@
 # AgentPass
 
-**AIエージェントのための財布とパスポート。**
+**Replay-safe authentication middleware for autonomous AI agents.**
 
-AgentPassは、AIエージェント間（M2M）の決済と認証を5分で導入できるオープンソースミドルウェアです。エージェントは署名済みJWTを「パスポート」として提示し、加盟店はその場で自律検証します。中央集権的なAPIキー管理も、サードパーティ認証サーバーも不要です。
+AgentPassは、AIエージェント間（M2M）の認証を5分で導入できるオープンソースミドルウェアです。エージェントは署名済みJWTを提示し、受信側はその場で自律検証します。中央集権的なAPIキー管理も、サードパーティ認証サーバーも不要です。
 
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
@@ -142,16 +142,6 @@ print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency":
 
 ---
 
-## 3ホライゾン戦略
-
-| ホライゾン | フェーズ | 内容 |
-|-----------|---------|------|
-| **波1** | OSS配布（現在） | `pip install agentpass` で5分導入。ゴールドラッシュのスコップ屋として、AIエージェント爆増の波に乗るインフラを先占する |
-| **波2** | 双方向マーケット | 検証済みエージェントの `AgentID` 信用スコアを公開APIで提供。加盟店はスコアで与信枠を動的制御。エージェントはスコアを資産として蓄積 |
-| **波3** | M2M中央銀行 | エージェント間決済の清算・為替・流動性プールを提供。AI経済圏のレールになる |
-
----
-
 ## テスト
 
 ```bash
@@ -179,7 +169,7 @@ pytest --cov=src --cov-report=term-missing
 | `tests/test_agent_signer.py` | AgentID導出・決定論性 | 9 |
 | `tests/e2e/test_agentpass_ecosystem.py` | フルスタック統合（正常系・リプレイ攻撃） | 7 |
 
-### Sandbox（110件）— 経済動作検証実験
+### Sandbox（110件）— プロトコル境界検証
 
 | ファイル | カバー範囲 | 件数 |
 |---------|-----------|-----:|
@@ -195,7 +185,3 @@ pytest --cov=src --cov-report=term-missing
 ## ライセンス
 
 MIT License — 商用利用・改変・再配布自由。
-
----
-
-> *"AIエージェントが人間と同じように経済活動する時代に、AgentPassはその入国審査官になる。"*
