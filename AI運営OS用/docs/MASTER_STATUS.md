@@ -11,29 +11,29 @@
 ## CURRENT STATE ID
 
 ```
-STATE-2026-05-17-EXP004-COMPLETE
+STATE-2026-05-17-EXP004-MERGED
 ```
 
-**意味:** EXP-004（Minimal Sandbox Purchase Flow）が全成功基準を達成して完了した状態。
-次の優先事項は EXP-005 の設計開始。
+**意味:** EXP-004（Minimal Sandbox Purchase Flow）が PR #1 を通じて `main` へマージされた状態。
+次の優先事項は EXP-005 候補の整理と最初の実験選定。
 
 ---
 
 ## CURRENT PHASE
 
 ```
-STEP9 — Sandbox Runtime Validation
+STEP10 — Experiment Log Operation
 ```
 
-Wave 1（エコシステム・パッケージング）は完了。
-現在は Wave 2 の入口として Sandbox 実験で実用性を検証するフェーズ。
+STEP9（Sandbox Runtime Validation）は EXP-004 の main マージをもって完了。
+STEP10 では EXP-005 以降の実験を継続的に回し、実験ログを資産化するフェーズ。
 
 ---
 
 ## CURRENT ACTIVE EXPERIMENT
 
 ```
-EXP-004: Minimal AgentPass Sandbox Purchase Flow — ✅ COMPLETED
+EXP-004: Minimal AgentPass Sandbox Purchase Flow — ✅ COMPLETED & MERGED
 ```
 
 | 項目 | 結果 |
@@ -42,11 +42,15 @@ EXP-004: Minimal AgentPass Sandbox Purchase Flow — ✅ COMPLETED
 | Attempt 2 (same token) | 401 Replay attack detected ✓ |
 | audit_exp004.jsonl | 2行保存済み ✓ |
 | 153 tests | 全通過 ✓ |
-| exit code | 0 ✓ |
+| PR #1 → main マージ | 完了 ✓ |
 
-実装済みファイル:
+マージ済みファイル:
 - `examples/sandbox_merchant.py`
 - `examples/sandbox_agent.py`
+- `AI運営OS用/docs/EXPERIMENT_LOG.md`（EXP-004 結果記入）
+- `AI運営OS用/docs/MASTER_STATUS.md`（本ファイル）
+
+次のアクティブ実験: **EXP-005（設計中）**
 
 ---
 
@@ -66,16 +70,11 @@ EXP-005: Budget-limited autonomous purchase flow (設計開始)
 ## CURRENT BRANCH
 
 ```
-experiment/exp-004-sandbox-merchant
+main
 ```
 
-このブランチには以下が含まれる（未マージ・未push確認状態）:
-- `examples/sandbox_merchant.py`
-- `examples/sandbox_agent.py`
-- `.gitignore` 更新（sandbox_keys.json, audit_exp*.jsonl を除外）
-- `AI運営OS用/docs/EXPERIMENT_LOG.md` EXP-004 結果記入
-
-**次のアクション:** `main` へのPR作成、またはEXP-005ブランチへ移行。
+`experiment/exp-004-sandbox-merchant` は PR #1 を通じて `main` にマージ済み。
+次の作業ブランチ: `experiment/exp-005-*`（EXP-005 設計確定後に作成）
 
 ---
 
@@ -83,7 +82,9 @@ experiment/exp-004-sandbox-merchant
 
 - [x] Sandbox での replay detection 検証（完了）
 - [x] JSONL audit log 保存（完了）
-- [ ] EXP-005: CircuitBreaker 連携での予算制御実験（次）
+- [x] EXP-004 を main へマージ（PR #1 完了）
+- [ ] EXP-005 候補整理と最初の実験選定（次）
+- [ ] EXP-005: CircuitBreaker 連携での予算制御実験
 - [ ] Wave 2 課題: agent 独自鍵ペアと merchant 側公開鍵レジストリ設計
 - [ ] `core/__init__.py` 遅延インポート検討（スクリプト実行時の重さ対策）
 
@@ -120,8 +121,8 @@ experiment/exp-004-sandbox-merchant
 
 | チャンネル | 役割 | 担当領域 |
 |-----------|------|---------|
-| **Sandbox実験室** | 実装・実験 | EXP-004〜 の sandbox スクリプト実装・実行 |
-| **技術相談室** | 設計・判断 | アーキテクチャ決定・リスク評価・Wave 2 設計 |
+| **PM進捗管理** | 優先度・進捗管理 | STATE ID 管理・EXP 選定・MASTER_STATUS 更新判断 |
+| **Sandbox実験室** | 実装・実験 | EXP-005〜 の sandbox スクリプト実装・実行 |
 | **Claude Code (このセッション)** | コーディング | src/ tests/ examples/ の実装補助 |
 
 ---
@@ -129,10 +130,14 @@ experiment/exp-004-sandbox-merchant
 ## NEXT REQUIRED ACTION
 
 ```
-[1] EXP-004 ブランチを main へ PR（またはマージ）
-[2] EXP-005 設計開始: Budget-limited autonomous purchase flow
-    → examples/sandbox_merchant_v2.py に CircuitBreaker を組み込む
-    → 成功: 購入フロー完走, 失敗: BudgetExceededError で 402 返却
+[1] EXP-005 候補を整理し、最初の実験を選定する
+    候補:
+      EXP-005a: CircuitBreaker 予算制御（BudgetExceededError → 402）
+      EXP-005b: マルチエージェント競合（同一JTI並列送信 → AnomalyDetector）
+      EXP-005c: agent 独自鍵ペア分離（sandbox の鍵共有を本番相当に変更）
+
+[2] 選定した実験を EXPERIMENT_LOG.md に EXP-005 として追加
+[3] experiment/exp-005-* ブランチを作成して実装開始
 ```
 
 詳細手順は `EXPERIMENT_LOG.md` の「次の実験候補」テーブルを参照。
@@ -145,7 +150,8 @@ experiment/exp-004-sandbox-merchant
 Sandbox実験室
 ```
 
-EXP-005 の設計・実装は Sandbox実験室が主導。
+EXP-005 の選定・設計・実装は Sandbox実験室が主導。
+EXP 選定の優先度判断は PM進捗管理が行う。
 `CLAUDE_CODE_WORKFLOW.md` の Template C（Sandbox実験用）を使って Claude Code に依頼可能。
 
 ---
@@ -153,7 +159,7 @@ EXP-005 の設計・実装は Sandbox実験室が主導。
 ## LAST UPDATED
 
 ```
-2026-05-17T02:15:00Z
+2026-05-17T02:45:00Z
 ```
 
 ---
