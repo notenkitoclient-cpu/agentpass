@@ -17,7 +17,7 @@ Agent  ──[AgentPass JWT]──▶  Merchant API
 ### 1. インストール
 
 ```bash
-pip install agentpass fastapi uvicorn cryptography PyJWT
+pip install agentpass fastapi uvicorn cryptography PyJWT httpx
 ```
 
 ### 2. 加盟店サーバーにミドルウェアを追加
@@ -27,8 +27,7 @@ pip install agentpass fastapi uvicorn cryptography PyJWT
 from fastapi import FastAPI
 from starlette.requests import Request
 
-from src.core.authorization_middleware import AuthorizationMiddleware
-from src.core.anomaly_detector import AnomalyDetector
+from agentpass import AuthorizationMiddleware, AnomalyDetector
 
 app = FastAPI()
 app.add_middleware(
@@ -49,46 +48,39 @@ async def pay(request: Request):
 ### 3. `agentpass.json` を公開する（加盟店側）
 
 ```json
-// https://api.merchant.com/.well-known/agentpass.json
 {
   "agentpass_version": "1.0.0",
   "merchant_id": "550e8400-e29b-41d4-a716-446655440000",
-  "public_key": "a1b2c3d4...",   // Ed25519 公開鍵（64桁 HEX）
+  "public_key": "a1b2c3d4...",
   "pricing": [
     { "endpoint": "/v1/pay", "price_per_token": 0.001 }
   ]
 }
 ```
 
+加盟店の Ed25519 公開鍵を `https://api.merchant.com/.well-known/agentpass.json` で配信します。
+
 ### 4. エージェント側でトークンを発行して送信
 
 ```python
 # agent_client.py
-import jwt, time, uuid
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
-private_key = Ed25519PrivateKey.generate()  # 実際はセキュアストレージから読み込む
-
-token = jwt.encode(
-    {
-        "sub":  "agent-7f3a...",              # エージェントID
-        "iss":  "myagent.example.com",        # 公開鍵の取得元ドメイン
-        "aud":  "https://api.merchant.com/v1/pay",  # 宛先URL（完全一致）
-        "iat":  int(time.time()),
-        "exp":  int(time.time()) + 60,        # 60秒で失効
-        "jti":  str(uuid.uuid4()),            # 使い捨てID（リプレイ防止）
-        "amt":  0.001,                        # 支払い額
-        "cur":  "JPY",                        # 通貨
-        "agp":  "1",                          # AgentPass バージョン
-    },
-    private_key,
-    algorithm="EdDSA",
-)
-
+from agentpass import issue_token, TokenRequest, generate_keypair
 import httpx
+
+# 実際はセキュアストレージから秘密鍵を読み込む
+private_key, _ = generate_keypair()
+
+req = TokenRequest(
+    agent_id="agent-7f3a...",
+    destination_url="https://api.merchant.com/v1/pay",
+    amount_requested=0.001,
+    purpose="data access",
+)
+issued = issue_token(req, private_key)
+
 resp = httpx.get(
     "https://api.merchant.com/v1/pay",
-    headers={"Authorization": f"AgentPass {token}"},
+    headers={"Authorization": f"AgentPass {issued.token}"},
 )
 print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency": "JPY"}
 ```
@@ -141,9 +133,9 @@ print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency":
 
 | HTTP | `error_code` | 原因 |
 |------|-------------|------|
+| 400 | `INVALID_PAYLOAD` | 署名不一致 / 必須クレーム欠如 |
 | 401 | `INVALID_PAYLOAD` | Authorizationヘッダー欠如 / スキーム誤り / JWT不正 |
 | 401 | `TOKEN_EXPIRED` | JWTの `exp` 超過 |
-| 400 | `INVALID_PAYLOAD` | 署名不一致 / 必須クレーム欠如 |
 | 403 | `DESTINATION_MISMATCH` | `aud` が要求URLと不一致 |
 | 403 | `REPLAY_ATTACK` | 同一JTIのトークンを再送信 |
 | 503 | `MERCHANT_UNVERIFIED` | `agentpass.json` の取得失敗 |
@@ -163,24 +155,40 @@ print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency":
 ## テスト
 
 ```bash
-# 全テスト実行（147件）
-.venv/bin/pytest
+# 全テスト実行
+pytest
 
 # カバレッジ付き
-.venv/bin/pytest --cov=src --cov-report=term-missing
+pytest --cov=src --cov-report=term-missing
 ```
 
-テストスイートの構成:
+**263 tests, 0 failed**（Python 3.14）
 
-| ファイル | カバー範囲 | テスト数 |
-|---------|-----------|---------|
-| `tests/test_agentpass_crawler.py` | SSRF防御・1MB制限・TTLキャッシュ・HTTP異常系 | 14件 |
-| `tests/test_core_authorization_middleware.py` | ミドルウェア全経路（正常・異常・JWT検証） | 20件 |
-| `tests/test_token_verifier.py` | Ed25519署名・aud・exp・クレーム検証 | 40件 |
-| `tests/test_anomaly_detector.py` | リプレイ検知・GC・時刻制御 | 11件 |
-| `tests/test_credit_scorer.py` | 信用スコア計算・ペナルティ・境界値 | 30件 |
-| `tests/test_agent_signer.py` | AgentID導出・決定論性 | 20件 |
-| `tests/e2e/test_agentpass_ecosystem.py` | フルスタック統合（正常系＋リプレイ攻撃） | 7件 |
+### Core（153件）
+
+| ファイル | カバー範囲 | 件数 |
+|---------|-----------|-----:|
+| `tests/test_agentpass_crawler.py` | SSRF防御・1MB制限・TTLキャッシュ・HTTP異常系 | 20 |
+| `tests/test_authorization_middleware.py` | ミドルウェア全経路（正常・異常・JWT検証） | 20 |
+| `tests/test_core_authorization_middleware.py` | Pydanticスキーマ統合・エラーコード体系 | 18 |
+| `tests/test_circuit_breaker.py` | 予算・レート制限・スライディングウィンドウ | 22 |
+| `tests/test_token_verifier.py` | Ed25519署名・aud・exp・クレーム検証 | 15 |
+| `tests/test_token_issuer.py` | トークン発行・JTI一意性 | 9 |
+| `tests/test_anomaly_detector.py` | リプレイ検知・GC・時刻制御 | 11 |
+| `tests/test_credit_scorer.py` | 信用スコア計算・ペナルティ・境界値 | 22 |
+| `tests/test_agent_signer.py` | AgentID導出・決定論性 | 9 |
+| `tests/e2e/test_agentpass_ecosystem.py` | フルスタック統合（正常系・リプレイ攻撃） | 7 |
+
+### Sandbox（110件）— 経済動作検証実験
+
+| ファイル | カバー範囲 | 件数 |
+|---------|-----------|-----:|
+| `tests/sandbox/test_budget_exceeded_returns_402.py` | Budget Control・HTTP 402拒否 | 20 |
+| `tests/sandbox/test_budget_rejection_audit_log.py` | append-only JSONL監査ログ | 16 |
+| `tests/sandbox/test_budget_replay.py` | 拒否イベントのreplay検証 | 8 |
+| `tests/sandbox/test_exp005b_jti_collision.py` | JTI衝突・スレッド安全性（N並列→承認1件） | 16 |
+| `tests/sandbox/test_exp006_burst_freeze.py` | バースト検知・一時freeze（HTTP 503） | 22 |
+| `tests/sandbox/test_exp005c_agent_keypair_isolation.py` | エージェント別鍵隔離・signer mismatch拒否 | 28 |
 
 ---
 
