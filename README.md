@@ -2,17 +2,68 @@
 
 **Replay-safe authentication middleware for autonomous AI agents.**
 
-AgentPassは、AIエージェント間（M2M）の認証を5分で導入できるオープンソースミドルウェアです。エージェントは署名済みJWTを提示し、受信側はその場で自律検証します。中央集権的なAPIキー管理も、サードパーティ認証サーバーも不要です。
+Ed25519 署名済み JWT を使い、AIエージェント間（M2M）の認証をサードパーティサーバー不要で実現します。
 
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
-         "I am agent-7f3a, paying 0.001 JPY/token"
               ▲ Ed25519 署名 + aud 固定 + jti 使い捨て
 ```
 
 ---
 
-## 5分クイックスタート
+## What AgentPass Solves
+
+| 問題 | AgentPass の対策 |
+|------|----------------|
+| **リプレイ攻撃** | `jti` クレームで各トークンを使い捨て。傍受されたトークンを再送しても即拒否 |
+| **なりすまし** | Ed25519 署名でトークンを発行元エージェントの鍵ペアに紐付け。偽造不可 |
+| **APIキー共有** | エージェントごとに独立した鍵ペア。1つの鍵が漏洩しても他に影響なし |
+
+---
+
+## 3-Minute Quick Demo
+
+```bash
+pip install agentpass cryptography PyJWT
+```
+
+```python
+# quickdemo.py — python quickdemo.py
+from agentpass import issue_token, verify_token, TokenRequest, generate_keypair
+
+ENDPOINT = "https://api.example.com/v1/query"
+
+# エージェントと検証側が同じ鍵ペアを共有するデモ。
+# 本番: エージェントが事前に公開鍵を加盟店へ登録する。
+private_key, public_key = generate_keypair()
+
+token = issue_token(
+    TokenRequest(
+        agent_id="agent-demo-001",
+        destination_url=ENDPOINT,
+        amount_requested=0.001,
+        purpose="data query",
+    ),
+    private_key,
+).token
+
+claims = verify_token(token, public_key, ENDPOINT)
+print(f"✓ Verified  agent={claims.agent_id}  amount={claims.amount} {claims.currency}")
+print(f"  token={token[:52]}...")
+```
+
+Expected output:
+
+```
+✓ Verified  agent=agent-demo-001  amount=0.001 JPY
+  token=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIi...
+```
+
+---
+
+## ASGI Middleware Setup
+
+FastAPI / Starlette への組み込みは3ファイルで完了します。
 
 ### 1. インストール
 
@@ -20,13 +71,11 @@ Agent  ──[AgentPass JWT]──▶  Merchant API
 pip install agentpass fastapi uvicorn cryptography PyJWT httpx
 ```
 
-### 2. 加盟店サーバーにミドルウェアを追加
+### 2. 加盟店サーバー (`merchant.py`)
 
 ```python
-# merchant_api.py
 from fastapi import FastAPI
 from starlette.requests import Request
-
 from agentpass import AuthorizationMiddleware, AnomalyDetector
 
 app = FastAPI()
@@ -45,7 +94,7 @@ async def pay(request: Request):
     }
 ```
 
-### 3. `agentpass.json` を公開する（加盟店側）
+### 3. `agentpass.json` を公開する
 
 ```json
 {
@@ -58,12 +107,11 @@ async def pay(request: Request):
 }
 ```
 
-加盟店の Ed25519 公開鍵を `https://api.merchant.com/.well-known/agentpass.json` で配信します。
+`https://api.merchant.com/.well-known/agentpass.json` で配信します。`public_key` はエージェントが事前登録した Ed25519 公開鍵（hex）を設定してください。
 
-### 4. エージェント側でトークンを発行して送信
+### 4. エージェント (`agent.py`)
 
 ```python
-# agent_client.py
 from agentpass import issue_token, TokenRequest, generate_keypair
 import httpx
 
@@ -85,24 +133,32 @@ resp = httpx.get(
 print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency": "JPY"}
 ```
 
-これだけです。
+### 5. 起動
+
+```bash
+# Terminal 1
+uvicorn merchant:app
+
+# Terminal 2
+python agent.py
+```
 
 ---
 
-## 4つの防衛壁
+## Security Model
 
 | 防衛壁 | 仕組み | 防御する攻撃 |
 |--------|--------|-------------|
 | **Ed25519 署名** | トークンをエージェントの秘密鍵で署名。公開鍵は `agentpass.json` から自律取得 | 偽造・なりすまし |
-| **改ざん検知** | JWT ヘッダー・ペイロード・署名の三部構造。1バイトでも変更すれば検証失敗 | 中間者改ざん |
-| **`aud` 宛先固定** | `aud` クレームに完全URLを埋め込み、受信URLと完全一致チェック | トークン横流し |
+| **改ざん検知** | JWT 三部構造。1バイトでも変更すれば検証失敗 | 中間者改ざん |
+| **`aud` 宛先固定** | 完全URLを埋め込み、受信URLと完全一致チェック | トークン横流し |
 | **`jti` 使い捨て** | `AnomalyDetector` が JTI を TTL 付きで記録し、再送を即拒否 | リプレイ攻撃 |
 
-さらに、クローラーは **SSRF防御**（プライベートIPへの解決を即拒否）と **1MBストリーム制限**（巨大レスポンスで即切断）を内蔵しています。
+クローラーは **SSRF防御**（プライベートIPへの解決を即拒否）と **1MBストリーム制限**（巨大レスポンスで即切断）を内蔵しています。
 
 ---
 
-## アーキテクチャ
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -129,7 +185,7 @@ print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency":
 
 ---
 
-## エラーレスポンス一覧
+## Error Reference
 
 | HTTP | `error_code` | 原因 |
 |------|-------------|------|
@@ -142,14 +198,11 @@ print(resp.json())  # {"agent_id": "agent-7f3a...", "amount": 0.001, "currency":
 
 ---
 
-## テスト
+## Tests
 
 ```bash
-# 全テスト実行
 pytest
-
-# カバレッジ付き
-pytest --cov=src --cov-report=term-missing
+pytest --cov=src --cov-report=term-missing  # カバレッジ付き
 ```
 
 **263 tests, 0 failed**（Python 3.14）
@@ -182,6 +235,6 @@ pytest --cov=src --cov-report=term-missing
 
 ---
 
-## ライセンス
+## License
 
 MIT License — 商用利用・改変・再配布自由。
