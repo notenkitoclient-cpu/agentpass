@@ -15,7 +15,7 @@ import httpx
 import pytest
 import respx
 
-from src.core.agentpass_crawler import AgentPassCrawler, MerchantMetadata
+from core.agentpass_crawler import AgentPassCrawler, MerchantMetadata
 
 BASE_DOMAIN = "agent.example.com"
 METADATA_URL = f"https://{BASE_DOMAIN}/.well-known/agentpass.json"

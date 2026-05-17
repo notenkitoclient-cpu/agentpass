@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 
-from src.core.anomaly_detector import AnomalyDetector
+from core.anomaly_detector import AnomalyDetector
 
 
 # ---------------------------------------------------------------------------

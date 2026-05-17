@@ -10,7 +10,7 @@ import uuid
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from src.identity.agent_signer import derive_agent_id
+from identity.agent_signer import derive_agent_id
 
 
 def _make_key_bytes() -> bytes:

@@ -23,9 +23,9 @@ from starlette.types import ASGIApp
 
 import jwt as _jwt
 
-from src.core.agentpass_crawler import AgentPassCrawler
-from src.core.anomaly_detector import AnomalyDetector
-from src.core.token_verifier import VerificationError, verify_token
+from core.agentpass_crawler import AgentPassCrawler
+from core.anomaly_detector import AnomalyDetector
+from core.token_verifier import VerificationError, verify_token
 
 _SCHEME = "AgentPass"
 _PREFIX = f"{_SCHEME} "

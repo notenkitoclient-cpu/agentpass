@@ -17,12 +17,12 @@ from pathlib import Path
 
 import pytest
 
-from src.agentpass.sandbox.audit_log import AuditLog
-from src.agentpass.sandbox.budget_control import SandboxBudgetControl
-from src.agentpass.sandbox.replay_guard import ReplayGuard
-from src.agentpass.sandbox.verifier import SandboxVerifier
-from src.core.token_issuer import TokenRequest, generate_keypair, issue_token
-from src.core.token_verifier import InvalidPayloadError
+from agentpass.sandbox.audit_log import AuditLog
+from agentpass.sandbox.budget_control import SandboxBudgetControl
+from agentpass.sandbox.replay_guard import ReplayGuard
+from agentpass.sandbox.verifier import SandboxVerifier
+from core.token_issuer import TokenRequest, generate_keypair, issue_token
+from core.token_verifier import InvalidPayloadError
 
 
 MERCHANT_URL = "https://sandbox.agentpass.local/api/data"

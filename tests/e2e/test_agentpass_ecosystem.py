@@ -23,8 +23,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.requests import Request
 
-from src.core.anomaly_detector import AnomalyDetector
-from src.core.authorization_middleware import AuthorizationMiddleware
+from core.anomaly_detector import AnomalyDetector
+from core.authorization_middleware import AuthorizationMiddleware
 
 # ---------------------------------------------------------------------------
 # テスト定数

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.identity.credit_scorer import CreditScorer
+from identity.credit_scorer import CreditScorer
 
 
 # ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ from datetime import timezone
 import jwt
 import pytest
 
-from src.core.token_issuer import (
+from core.token_issuer import (
     IssuedToken,
     TokenRequest,
     generate_keypair,

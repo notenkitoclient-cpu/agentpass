@@ -21,9 +21,9 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from src.core.token_issuer import TokenRequest, generate_keypair, issue_token
-from src.merchant.agentpass_crawler import AgentPassConfig, PricingEntry
-from src.merchant.authorization_middleware import AgentPassMiddleware
+from core.token_issuer import TokenRequest, generate_keypair, issue_token
+from merchant.agentpass_crawler import AgentPassConfig, PricingEntry
+from merchant.authorization_middleware import AgentPassMiddleware
 
 # ---------------------------------------------------------------------------
 # テスト定数

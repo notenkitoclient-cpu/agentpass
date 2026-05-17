@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from src.core.token_issuer import TokenRequest
+from core.token_issuer import TokenRequest
 
 
 class SandboxSigner:

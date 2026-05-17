@@ -14,11 +14,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.agentpass.sandbox.audit_log import AuditLog
-from src.agentpass.sandbox.budget_control import SandboxBudgetControl
-from src.agentpass.sandbox.errors import SandboxBudgetExceededError
-from src.agentpass.sandbox.verifier import SandboxVerifier
-from src.core.token_issuer import TokenRequest, generate_keypair, issue_token
+from agentpass.sandbox.audit_log import AuditLog
+from agentpass.sandbox.budget_control import SandboxBudgetControl
+from agentpass.sandbox.errors import SandboxBudgetExceededError
+from agentpass.sandbox.verifier import SandboxVerifier
+from core.token_issuer import TokenRequest, generate_keypair, issue_token
 
 
 MERCHANT_URL = "https://sandbox.agentpass.local/api/data"

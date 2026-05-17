@@ -20,8 +20,8 @@ import uuid
 import jwt as _pyjwt
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from src.core.anomaly_detector import AnomalyDetector
-from src.core.token_verifier import InvalidPayloadError, VerifiedClaims, verify_token
+from core.anomaly_detector import AnomalyDetector
+from core.token_verifier import InvalidPayloadError, VerifiedClaims, verify_token
 
 from .agent_key_registry import AgentKeyRegistry
 from .audit_log import AuditLog

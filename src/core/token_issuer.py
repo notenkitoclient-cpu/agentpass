@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 )
 
 if TYPE_CHECKING:
-    from src.core.circuit_breaker import CircuitBreaker, CircuitBreakerStatus
+    from core.circuit_breaker import CircuitBreaker, CircuitBreakerStatus
 
 
 @dataclass(frozen=True)

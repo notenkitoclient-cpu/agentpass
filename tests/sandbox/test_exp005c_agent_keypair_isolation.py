@@ -21,18 +21,18 @@ from pathlib import Path
 import jwt
 import pytest
 
-from src.agentpass.sandbox.agent_key_registry import AgentKeyRegistry
-from src.agentpass.sandbox.audit_log import AuditLog
-from src.agentpass.sandbox.budget_control import SandboxBudgetControl
-from src.agentpass.sandbox.errors import (
+from agentpass.sandbox.agent_key_registry import AgentKeyRegistry
+from agentpass.sandbox.audit_log import AuditLog
+from agentpass.sandbox.budget_control import SandboxBudgetControl
+from agentpass.sandbox.errors import (
     CompromisedKeyError,
     SignerMismatchError,
     UnknownKeyIdError,
 )
-from src.agentpass.sandbox.replay_guard import ReplayGuard
-from src.agentpass.sandbox.signer import SandboxSigner
-from src.agentpass.sandbox.verifier import SandboxVerifier
-from src.core.token_issuer import TokenRequest, generate_keypair
+from agentpass.sandbox.replay_guard import ReplayGuard
+from agentpass.sandbox.signer import SandboxSigner
+from agentpass.sandbox.verifier import SandboxVerifier
+from core.token_issuer import TokenRequest, generate_keypair
 
 
 MERCHANT_URL = "https://sandbox.agentpass.local/api/data"
@@ -304,7 +304,7 @@ class TestMultiAgentVerification:
 
     def test_no_kid_in_token_rejected(self, tmp_path):
         """Token without kid header (issued by core issue_token) is rejected in multi-agent mode."""
-        from src.core.token_issuer import issue_token, TokenRequest
+        from core.token_issuer import issue_token, TokenRequest
         private_key, public_key = generate_keypair()
         registry = AgentKeyRegistry()
         registry.register("agent-a", "key-a", public_key)
@@ -318,7 +318,7 @@ class TestMultiAgentVerification:
         )
         # issue_token does not include kid
         issued = issue_token(req, private_key)
-        from src.core.token_verifier import InvalidPayloadError
+        from core.token_verifier import InvalidPayloadError
         with pytest.raises(InvalidPayloadError, match="Missing kid"):
             verifier.verify(issued.token)
 

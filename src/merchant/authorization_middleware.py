@@ -26,8 +26,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp
 
-from src.core.token_verifier import VerificationError, verify_token
-from src.merchant.agentpass_crawler import AgentPassConfig, fetch_agentpass_config
+from core.token_verifier import VerificationError, verify_token
+from merchant.agentpass_crawler import AgentPassConfig, fetch_agentpass_config
 
 _SCHEME = "AgentPass"
 _PREFIX = f"{_SCHEME} "

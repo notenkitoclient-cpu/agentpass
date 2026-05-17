@@ -6,8 +6,8 @@ import uuid
 import jwt
 import pytest
 
-from src.core.token_issuer import TokenRequest, generate_keypair, issue_token
-from src.core.token_verifier import (
+from core.token_issuer import TokenRequest, generate_keypair, issue_token
+from core.token_verifier import (
     DestinationMismatchError,
     InvalidPayloadError,
     TokenExpiredError,

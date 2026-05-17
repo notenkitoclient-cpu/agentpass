@@ -7,13 +7,13 @@ circuit_breaker の動作確認テスト
 
 import pytest
 
-from src.core.circuit_breaker import (
+from core.circuit_breaker import (
     BudgetExceededError,
     CircuitBreaker,
     CircuitBreakerStatus,
     RateLimitedError,
 )
-from src.core.token_issuer import TokenRequest, generate_keypair, issue_token
+from core.token_issuer import TokenRequest, generate_keypair, issue_token
 
 
 # ---------------------------------------------------------------------------

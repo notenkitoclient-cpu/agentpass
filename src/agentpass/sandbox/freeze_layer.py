@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import uuid
 
-from src.core.token_verifier import InvalidPayloadError, VerifiedClaims
+from core.token_verifier import InvalidPayloadError, VerifiedClaims
 
 from .audit_log import AuditLog
 from .burst_freeze import BurstFreezeDetector

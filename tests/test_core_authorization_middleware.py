@@ -19,8 +19,8 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from src.core.agentpass_crawler import MerchantMetadata, PricingSchema
-from src.core.authorization_middleware import AuthorizationMiddleware
+from core.agentpass_crawler import MerchantMetadata, PricingSchema
+from core.authorization_middleware import AuthorizationMiddleware
 
 # ---------------------------------------------------------------------------
 # テスト定数

@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from src.agentpass.sandbox.audit_log import AuditLog, REQUIRED_FIELDS
+from agentpass.sandbox.audit_log import AuditLog, REQUIRED_FIELDS
 
 
 # ---------------------------------------------------------------------------
