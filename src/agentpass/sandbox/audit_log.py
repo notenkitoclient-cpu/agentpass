@@ -99,3 +99,42 @@ class AuditLog:
             "status": "rejected",
             "reason": "budget_exceeded",
         }
+
+    @staticmethod
+    def make_purchase_approved_record(
+        *,
+        agent_id: str,
+        amount: float,
+        token_id: str,
+        nonce: str,
+    ) -> dict:
+        """Build a purchase_approved audit record (EXP-005b)."""
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "purchase_approved",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent_id": agent_id,
+            "amount": amount,
+            "token_id": token_id,
+            "nonce": nonce,
+            "status": "approved",
+        }
+
+    @staticmethod
+    def make_replay_detected_record(
+        *,
+        agent_id: str,
+        token_id: str,
+        nonce: str,
+    ) -> dict:
+        """Build a replay_detected audit record (EXP-005b)."""
+        return {
+            "event_id": str(uuid.uuid4()),
+            "event_type": "replay_detected",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agent_id": agent_id,
+            "token_id": token_id,
+            "nonce": nonce,
+            "status": "rejected",
+            "reason": "replay_detected",
+        }
