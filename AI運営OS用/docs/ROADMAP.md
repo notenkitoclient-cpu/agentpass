@@ -21,6 +21,8 @@
 
 ### ✅ 実装完了
 
+#### Core（`src/agentpass/`・公開 API）
+
 | 機能 | 詳細 |
 |------|------|
 | EdDSA/JWT トークン発行・検証 | `issue_token()` / `verify_token()` |
@@ -34,18 +36,45 @@
 | AgentID 派生 | `derive_agent_id()` SHA-256 → UUID |
 | 公開 API | `from agentpass import ...`（22 シンボル） |
 | PyPI 準拠パッケージング | `v1.0.0-beta1`・src-layout |
-| テストスイート | 153 件オールグリーン |
+| GitHub Actions CI/CD | Python 3.14・pytest・全ブランチ保護 |
 | README | 開発者向け5分クイックスタート |
+
+#### Sandbox（`src/agentpass/sandbox/`・実験層）
+
+| 実験 | 検証内容 | 結果 |
+|------|---------|------|
+| EXP-004 Minimal Purchase Flow | 使い捨てトークン→購入→リプレイ拒否のフルサイクル | ✅ Completed |
+| EXP-005a Budget Control | `SandboxBudgetControl` + HTTP 402 + JSONL 監査ログ | ✅ Completed |
+| EXP-005b JTI Collision | `threading.Lock` 原子操作で N スレッド同時送信→承認 1 件 | ✅ Completed |
+| EXP-006 Replay Burst Freeze | `FreezeLayer` ラッパーで verifier 無変更のまま burst 検知・HTTP 503 | ✅ Completed |
+| EXP-005c Agent Keypair Isolation | `AgentKeyRegistry` + `SandboxSigner` + JWT `kid` で multi-agent 鍵境界 | ✅ Completed |
+
+Sandbox 共通基盤:
+- `AuditLog` — append-only JSONL 監査ログ（replay validation 対応）
+- `BurstFreezeDetector` — スライディングウィンドウ + injectable timestamp
+- `ReplayGuard` — thread-safe JTI 原子登録
+- `AgentKeyRegistry` — key_id → (agent_id, pubkey, status) 管理
+- `SandboxSigner` — JWT `kid` ヘッダ付き per-agent 署名
+
+#### テストスイート
+
+| 区分 | 件数 | 状態 |
+|------|-----:|------|
+| Core（153 件） | 153 | ✅ 全通過 |
+| Sandbox（110 件） | 110 | ✅ 全通過 |
+| **合計** | **263** | **0 failed** |
 
 ### 🔄 現在進行中
 
-- Sandbox 検証
+- EXP-008 Token Revocation Layer 設計（revoked 鍵の lifecycle 検証）
+- SECURITY.md 作成（OSS trust 準備）
 - PyPI 実公開（`python -m build` + `twine upload`）
 
 ### 📋 Wave 1 残タスク
 
-- `CHANGELOG.md` 整備
-- GitHub Actions CI/CD パイプライン
+- SECURITY.md 作成
+- GitHub branch protection ルール設定（PR 必須化）
+- EXP-008: Token Revocation / Key Rotation 実験
 - `pip install agentpass` からのエンドツーエンド動作確認
 - OSS ライセンスヘッダーの統一
 
@@ -56,7 +85,8 @@
 | PyPI ダウンロード数 | 1,000/月 | 0（未公開） |
 | GitHub Stars | 500 | 0 |
 | 5分導入成功率 | > 90% | - |
-| テストカバレッジ | 100%（core crawler） | ✅ |
+| テストカバレッジ（Core） | 100% | ✅ |
+| Sandbox 実験完了数 | 5 以上 | ✅ 5（EXP-004/005a/005b/006/005c） |
 
 ---
 
@@ -122,9 +152,12 @@
 timeline
     title AgentPass 技術進化
     section Wave 1（現在）
-        EdDSA JWT : ✅ 実装済み
-        SSRF防御  : ✅ 実装済み
-        PyPI公開  : 🔄 進行中
+        EdDSA JWT        : ✅ 実装済み
+        SSRF防御         : ✅ 実装済み
+        Sandbox実験群    : ✅ EXP-004〜006・005a/b/c 完了
+        PyPI公開         : 🔄 進行中
+        SECURITY.md      : 🔄 準備中
+        EXP-008 Revocation : 🔄 設計中
     section Wave 2
         信用スコアAPI : 📋 設計中
         マルチ通貨    : 📋 設計中
@@ -154,7 +187,10 @@ timeline
 
 ## TODO
 
-- [ ] Wave 1 PyPI 公開完了後に KPI 計測開始
+- [ ] SECURITY.md 作成（脆弱性報告プロセス・OSS trust）
+- [ ] GitHub branch protection ルール設定（PR 必須・CI ゲート）
+- [ ] EXP-008: Token Revocation Layer 実装・検証
+- [ ] PyPI TestPyPI 公開 → KPI 計測開始
 - [ ] Wave 2 の「信用スコア公開 API」の詳細設計
 - [ ] GitHub Issues でロードマップをトラッキング
 - [ ] OSS コミュニティ形成戦略の策定
