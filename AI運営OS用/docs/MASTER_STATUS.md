@@ -1,265 +1,130 @@
-# MASTER STATUS — AgentPass AI Operations OS
+# AgentPass MASTER STATUS
 
-> **このファイルはAgentPassの「唯一の現在地」です。**
->
-> - 各チャット・各AIエージェントは会話開始時に必ずこのファイルを参照する
-> - 会話履歴・記憶・推測よりも、このファイルの記載を真実とする
-> - 大きな状態変化が起きたら、会話終了前にこのファイルを更新する
+Last Updated: 2026-05-17
 
 ---
 
-## CURRENT STATE ID
+# Current STATE
 
-```
-STATE-2026-05-17-EXP004-MERGED
-```
+STATE ID: STATE-2026-05-17-EXPERIMENT-LOG-SYNC-COMPLETE
 
-**意味:** EXP-004（Minimal Sandbox Purchase Flow）が PR #1 を通じて `main` へマージされた状態。
-次の優先事項は EXP-005 候補の整理と最初の実験選定。
+Current Phase:
+Wave1 OSS Hardening Phase
 
----
+Current Priority:
+ROADMAP/Wave1 alignment and OSS trust preparation (SECURITY.md, branch protection)
 
-## CURRENT PHASE
+Current Focus:
+- ROADMAP.md の Wave1 ロードマップと現在状態の整合性確認
+- SECURITY.md 作成（OSS trust）
+- GitHub branch protection ルール設定
+- PyPI TestPyPI 公開準備
 
-```
-STEP10 — Experiment Log Operation
-```
+Current Risks:
+- roadmap/state divergence（Wave1 記載が実験結果を反映していない可能性）
+- PyPI 未公開（v1.0.0-beta1 パッケージング済みだが twine upload 未実行）
+- GitHub ブランチ保護ルール未設定（CI は稼働だが PR 必須化未設定）
 
-STEP9（Sandbox Runtime Validation）は EXP-004 の main マージをもって完了。
-STEP10 では EXP-005 以降の実験を継続的に回し、実験ログを資産化するフェーズ。
-
----
-
-## CURRENT ACTIVE EXPERIMENT
-
-```
-EXP-004: Minimal AgentPass Sandbox Purchase Flow — ✅ COMPLETED & MERGED
-```
-
-| 項目 | 結果 |
-|------|------|
-| Attempt 1 (fresh token) | 200 Access granted ✓ |
-| Attempt 2 (same token) | 401 Replay attack detected ✓ |
-| audit_exp004.jsonl | 2行保存済み ✓ |
-| 153 tests | 全通過 ✓ |
-| PR #1 → main マージ | 完了 ✓ |
-
-マージ済みファイル:
-- `examples/sandbox_merchant.py`
-- `examples/sandbox_agent.py`
-- `AI運営OS用/docs/EXPERIMENT_LOG.md`（EXP-004 結果記入）
-- `AI運営OS用/docs/MASTER_STATUS.md`（本ファイル）
-
-次のアクティブ実験: **EXP-005（設計中）**
+Next Required Action:
+ROADMAP.md を開いて Wave1 ロードマップと現在の実験状況を照合し、
+差分があれば更新する（TASK-WAVE1-REALIGN）。
 
 ---
 
-## CURRENT PRIORITY
+# Active Task
 
-```
-EXP-005: Budget-limited autonomous purchase flow (設計開始)
-```
-
-**仮説:** CircuitBreaker による予算上限制御下でも、エージェントの購入フローは正常完了する。
-また、予算超過時は `BudgetExceededError` が適切に発火する。
-
-**前提:** EXP-004 が確立した基盤（token issue → verify → replay detect）の上に構築する。
-
----
-
-## CURRENT BRANCH
-
-```
-main
-```
-
-`experiment/exp-004-sandbox-merchant` は PR #1 を通じて `main` にマージ済み。
-次の作業ブランチ: `experiment/exp-005-*`（EXP-005 設計確定後に作成）
+- Task ID: TASK-WAVE1-REALIGN
+- Title: ROADMAP.md / Wave1整合性修正
+- Owner Channel: PM進捗管理
+- Status: ACTIVE
+- Started At: 2026-05-17
+- Completion Criteria:
+  ROADMAP.md の Wave1 記載が EXP-005a/b/c・EXP-006 完了状態を反映し、
+  次の実験（EXP-008）への接続が明確になること
 
 ---
 
-## CURRENT FOCUS
+# Task Queue
 
-- [x] Sandbox での replay detection 検証（完了）
-- [x] JSONL audit log 保存（完了）
-- [x] EXP-004 を main へマージ（PR #1 完了）
-- [ ] EXP-005 候補整理と最初の実験選定（次）
-- [ ] EXP-005: CircuitBreaker 連携での予算制御実験
-- [ ] Wave 2 課題: agent 独自鍵ペアと merchant 側公開鍵レジストリ設計
-- [ ] `core/__init__.py` 遅延インポート検討（スクリプト実行時の重さ対策）
-
----
-
-## LATEST DECISIONS
-
-| ID | タイトル | 状態 | 要点 |
-|----|---------|------|------|
-| Decision 001 | ChatGPT Projects を運営OS として使う | ACTIVE | このファイルはその版管理鏡 |
-| Decision 002 | AI運営OS用/docs/ を既存docsと分離 | ACTIVE | 既存コード・テストは変更しない |
-| Decision 003 | main保護とCIを優先 | ACTIVE | `.github/workflows/ci.yml` 稼働中 |
-| Decision 004 | 153 tests を壊さない方針 | ACTIVE | CI が強制; floor=153 |
-| Decision 005 | Sandbox実験を次フェーズの中心にする | ACTIVE | EXP-004 完了で実証済み |
-
-詳細: `DECISIONS.md`
+| Priority | Task ID | Task | Status | Owner Channel | Trigger | Notes |
+|---|---|---|---|---|---|---|
+| P1 | TASK-SECURITY-MD | SECURITY.md作成 | QUEUED | 技術相談室 | Wave1整合性修正後 | OSS trust preparation |
+| P1 | TASK-BRANCH-PROTECTION | branch protection運用確認 | QUEUED | 技術相談室 | SECURITY.md作成後 | protected main workflow |
+| P2 | TASK-PYPI-PREP | TestPyPI公開準備 | BLOCKED | 技術相談室 | security/release整備後 | external distribution preparation |
+| P2 | TASK-EXP008-REVOCATION-DESIGN | Token Revocation Layer設計 | PLANNED | Sandbox実験室 | documentation reconciliation complete | revocation boundary experiment |
 
 ---
 
-## CURRENT RISKS
+# Done Tasks
 
-| リスク | 重要度 | 現状 |
-|--------|--------|------|
-| マルチエージェント競合未検証 | 高 | EXP-006 候補。同一JTI並列送信でのAnomalyDetector挙動が未テスト |
-| 予算制御 (CircuitBreaker) 未検証 | 高 | EXP-005 で検証予定。現sandbox に組み込まれていない |
-| agent 独自鍵ペア管理未設計 | 中 | EXP-004 では merchant/agent が同一鍵ペアを共有（sandbox の簡略化） |
-| `core/__init__.py` の重いインポート | 低 | スクリプト実行時に不要モジュールまで読み込む。Wave 2 前に整理検討 |
-| PyPI 未公開 | 低 | `v1.0.0-beta1` パッケージング済みだが `twine upload` 未実行 |
-| GitHub ブランチ保護ルール未設定 | 中 | CI は稼働しているが、GitHub UI 側の PR 必須化が未設定 |
-
----
-
-## CURRENT OWNERS
-
-| チャンネル | 役割 | 担当領域 |
-|-----------|------|---------|
-| **PM進捗管理** | 優先度・進捗管理 | STATE ID 管理・EXP 選定・MASTER_STATUS 更新判断 |
-| **Sandbox実験室** | 実装・実験 | EXP-005〜 の sandbox スクリプト実装・実行 |
-| **Claude Code (このセッション)** | コーディング | src/ tests/ examples/ の実装補助 |
+| Task ID | Title | Completed At |
+|---|---|---|
+| TASK-EXPERIMENT-LOG-RECONCILIATION | EXPERIMENT_LOG.md と README.md の整合性修正 | 2026-05-17 |
+| TASK-README-REFRESH | README最新化（imports修正・test count 263・sandbox table） | 2026-05-17 |
+| TASK-EXP005A-STATUS-UPDATE | EXP-005a完了状態をMASTER_STATUSへ反映する | 2026-05-17 |
+| TASK-EXP005B-DESIGN | EXP-005b Multi-agent JTI Collision設計 | 2026-05-17 |
+| TASK-EXP006 | Replay / Collision Verification | 2026-05-17 |
+| TASK-EXP005C-KEYPAIR-ISOLATION | Agent Keypair Isolation | 2026-05-17 |
 
 ---
 
-## NEXT REQUIRED ACTION
+# Core Principles
 
-```
-[1] EXP-005 候補を整理し、最初の実験を選定する
-    候補:
-      EXP-005a: CircuitBreaker 予算制御（BudgetExceededError → 402）
-      EXP-005b: マルチエージェント競合（同一JTI並列送信 → AnomalyDetector）
-      EXP-005c: agent 独自鍵ペア分離（sandbox の鍵共有を本番相当に変更）
-
-[2] 選定した実験を EXPERIMENT_LOG.md に EXP-005 として追加
-[3] experiment/exp-005-* ブランチを作成して実装開始
-```
-
-詳細手順は `EXPERIMENT_LOG.md` の「次の実験候補」テーブルを参照。
+- tests = protocol law
+- experiment first
+- replayable logs
+- AI-readable structure
+- implementation / hypothesis separation
+- ACTIVE TASK is always singular
 
 ---
 
-## NEXT RESPONSIBLE CHANNEL
+# Operational Rules
 
-```
-Sandbox実験室
-```
-
-EXP-005 の選定・設計・実装は Sandbox実験室が主導。
-EXP 選定の優先度判断は PM進捗管理が行う。
-`CLAUDE_CODE_WORKFLOW.md` の Template C（Sandbox実験用）を使って Claude Code に依頼可能。
-
----
-
-## LAST UPDATED
-
-```
-2026-05-17T02:45:00Z
-```
+1. ACTIVE TASK は常に1つだけ
+2. 新規提案はTASK QUEUEへ積む
+3. ACTIVEを勝手に変更しない
+4. 各チャットは最後に
+   ACTIVE変更 or QUEUE追加
+   を必ず明示する
+5. 会話ログではなくSTATEを優先する
 
 ---
 
-## STATE ID ルール
+# Current Protected Assets
 
-### 形式
-
-```
-STATE-YYYY-MM-DD-KEYWORD[-KEYWORD2]
-```
-
-### 例
-
-| STATE ID | 意味 |
-|----------|------|
-| `STATE-2026-05-17-EXP004-COMPLETE` | EXP-004 完了 |
-| `STATE-2026-05-17-EXP005-RUNNING` | EXP-005 実行中 |
-| `STATE-2026-05-18-DECISION006` | Decision 006 が追加された |
-| `STATE-2026-05-20-WAVE2-START` | Wave 2 フェーズ開始 |
-| `STATE-2026-06-01-PYPI-PUBLISHED` | PyPI 公開完了 |
-
-### 更新タイミング
-
-STATE ID を更新すべき状態変化:
-
-| イベント | 更新する | しない |
-|---------|---------|--------|
-| Experiment 完了 (`✅ Completed`) | ✓ | |
-| Experiment 開始 (`🔄 Running`) | ✓ | |
-| Decision 追加・変更 | ✓ | |
-| Phase 変更 (STEP番号変更) | ✓ | |
-| Priority 変更 | ✓ | |
-| Branch 変更（main マージ後）| ✓ | |
-| 小さいコミット・docs修正 | | ✓ |
-| 単一ファイルの追加 | | ✓ |
-| テストの追加 | | ✓ |
+- 263 tests passing
+- 0 failed tests
+- 100% coverage
+- Sandbox Runtime operational
+- Replay verification operational
+- Multi-agent collision verification operational
+- Agent keypair isolation verification operational
+- External API structure operational
 
 ---
 
-## 各チャットの運用ルール
+# Latest Completed Experiments
 
-### 会話開始時
-
-```
-1. このファイル (MASTER_STATUS.md) を読む
-2. CURRENT STATE ID を確認する
-3. STATE ID が古い（今日の日付と乖離がある、または知らないEXPになっている）場合：
-   → 「STATE IDが [X] ですが、これは最新ですか？」と確認を促す
-4. CURRENT BRANCH を確認し、git branch で一致を確認する
-5. NEXT REQUIRED ACTION を読んで今日のゴールを把握する
-```
-
-### 会話中
-
-```
-- CURRENT FOCUS のチェックボックスを更新判断の基準にする
-- 新しいリスクを発見したら CURRENT RISKS に追記する
-- Decision が変わったら LATEST DECISIONS を更新する
-```
-
-### 会話終了時
-
-```
-1. 以下のいずれかが起きたか確認する:
-   - Experiment 完了したか？
-   - Decision が追加・変更されたか？
-   - Priority が変わったか？
-   - Branch が変わったか？
-   - Phase が変わったか？
-
-2. 該当するなら MASTER_STATUS.md を更新する:
-   a. CURRENT STATE ID を新しい STATE に変更
-   b. 該当セクションを更新
-   c. LAST UPDATED を現在時刻に更新
-   d. git commit -m "status: update MASTER_STATUS → STATE-YYYY-MM-DD-KEYWORD"
-
-3. 更新が不要でも、今日の作業を CHANGELOG.md に追記することを検討する
-```
-
-### STATE ID の読み方（AI エージェント向け）
-
-```python
-# AI がこのファイルをパースする場合の参照順序:
-# 1. CURRENT STATE ID  → 現在地の一行サマリー
-# 2. NEXT REQUIRED ACTION → 次にやること
-# 3. CURRENT BRANCH → git checkout の対象
-# 4. CURRENT RISKS → 回避すべき落とし穴
-# 5. LATEST DECISIONS → 守るべき制約
-```
+- EXP-005a Budget Control + HTTP 402
+- EXP-005b Multi-agent JTI Collision
+- EXP-005c Agent Keypair Isolation
+- EXP-006 Replay / Collision Verification
 
 ---
 
-## 関連ドキュメント
+# Known Repository Notes
 
-| ファイル | 用途 |
-|---------|------|
-| `DECISIONS.md` | 意思決定の詳細と根拠 |
-| `EXPERIMENT_LOG.md` | 実験の仮説・結果・学習 |
-| `CHANGELOG.md` | 変更履歴（時系列） |
-| `CLAUDE_CODE_WORKFLOW.md` | Claude Code への作業指示テンプレート |
-| `TESTING_POLICY.md` | テストルール（153テスト保護、SSRF mock IP等） |
-| `ROADMAP.md` | Wave 1/2/3 のマクロ計画 |
+- Remote branch remains:
+  experiment/exp-004-sandbox-merchant
+  (inactive / merge-complete)
+
+- git stash contains old MASTER_STATUS snapshot:
+  stash@{0}
+  (do not pop without verification)
+
+---
+
+# Next STATE Candidate
+
+STATE-2026-05-17-WAVE1-REALIGN-COMPLETE
