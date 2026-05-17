@@ -338,18 +338,316 @@ pytest after experiment: **153 passed** (no regressions)
 - [x] `examples/sandbox_merchant.py` 作成（完了）
 - [x] `examples/sandbox_agent.py` 作成（完了）
 - [x] 実験実行 → 全成功基準クリア
-- [ ] EXP-005: マルチエージェント競合テスト（複数エージェントが同一 JTI を同時送信した場合の AnomalyDetector 挙動）の設計
-- [ ] Wave 2 課題: agent 独自鍵ペアと merchant 側の公開鍵レジストリ設計
+- [x] マルチエージェント同一JTI競合テスト → EXP-005b で実施・検証済み
+- [x] Wave 2 課題: agent 独自鍵ペアと merchant 側の公開鍵レジストリ → EXP-005c で実施・検証済み
 - [ ] `core/__init__.py` の遅延インポート検討（軽量スクリプト実行のため）
+
+---
+
+## EXP-005a — Sandbox Budget Control（HTTP 402 Budget Gate）
+
+**Date:** 2026-05-17
+**Status:** ✅ Completed
+**Owner:** Claude Code (claude-sonnet-4-6)
+
+### Goal
+
+Sandbox環境において、AIエージェントの1トランザクション支出を予算上限でゲートし、
+超過時を HTTP 402 で拒否できるか検証する。
+また、拒否イベントをappend-onlyなJSONL監査ログに記録し、
+後から再検証（replay validation）できるかを確認する。
+
+### Hypothesis
+
+> `SandboxBudgetControl.check()` が冪等（状態変化なし）かつ監査可能であれば、
+> 拒否イベントをappend-onlyログから再現・検証できる。
+
+### Setup
+
+新規パッケージ `src/agentpass/sandbox/` を作成:
+
+```
+errors.py         — SandboxBudgetExceededError (http_status=402, to_response())
+budget_control.py — SandboxBudgetControl (check() は冪等)
+audit_log.py      — AuditLog (append-only JSONL, make_budget_exceeded_record())
+verifier.py       — SandboxVerifier (6ステップパイプライン)
+```
+
+6ステップパイプライン:
+```
+1. verify_token()     — 署名・有効期限・aud検証
+2. claims検証        — verify_token() に内包
+3. replay pre-check  — AnomalyDetector.is_replay_attack()
+4. budget check      — SandboxBudgetControl.check()
+5. 超過時            — audit_log.append() + SandboxBudgetExceededError送出
+6. 成功時            — VerifiedClaimsを返す（成功ログは呼び出し元責務）
+```
+
+### Result
+
+```
+tests/sandbox/
+  test_budget_exceeded_returns_402.py  — 20 tests (エラー属性・境界値・verifier統合)
+  test_budget_rejection_audit_log.py   — 12 tests (append-only・必須フィールド・JSONL形式)
+  test_budget_replay.py                — 12 tests (冪等性・verifier↔audit log往復)
+
+既存 153 + 新規 44 = 197 passed / 0 failed
+```
+
+### Problems
+
+なし。既存 core と責務を明確に分離できた。
+
+### Learnings
+
+- **sandbox は HTTP 402** (Payment Required) が意味的に正確。core の BudgetExceededError が使う 429（Too Many Requests）とは異なる語義
+- **冪等設計が監査ログの価値を高める**: reject 時に状態変化しないため、同じ条件で何度でも再現検証できる
+- **JSONL 形式 + REQUIRED_FIELDS で replay validation が自然に書ける**: テスト層でも「audit log を読んで再検証」というパターンが成立した
+
+### Next Action
+
+- [x] `src/agentpass/sandbox/` パッケージ作成（完了）
+- [x] 44件テスト追加、197 passed（完了）
+- [x] EXP-005b: JTI 衝突テストへ進む
+
+---
+
+## EXP-005b — JTI Collision / Thread-Safe Replay Guard
+
+**Date:** 2026-05-17
+**Status:** ✅ Completed
+**Owner:** Claude Code (claude-sonnet-4-6)
+
+### Goal
+
+同一JTIを複数スレッドが同時送信したとき、承認が「ちょうど1件」に絞られることを
+atomicに保証できるか検証する。
+また、replay_detected と purchase_approved を監査ログに残し、
+所有権の追跡を可能にする。
+
+### Hypothesis
+
+> `threading.Lock` を使った `check_and_register(jti) -> bool` を1操作にすれば、
+> N スレッドが同一JTIを同時送信しても approved が厳密に1件になる。
+
+### Setup
+
+```python
+# src/agentpass/sandbox/replay_guard.py
+class ReplayGuard:
+    def __init__(self):
+        self._seen: set[str] = set()
+        self._lock = threading.Lock()
+
+    def check_and_register(self, jti: str) -> bool:
+        with self._lock:
+            if jti in self._seen:
+                return False
+            self._seen.add(jti)
+            return True
+```
+
+SandboxVerifier に `replay_guard: ReplayGuard | None = None` パラメータを追加。
+active 時は `is_replay_attack` を `check_and_register` で代替し、
+`replay_detected` / `purchase_approved` 監査イベントを記録。
+
+### Result
+
+```
+tests/sandbox/test_exp005b_jti_collision.py  — 16 tests
+
+TestSequentialReplay   (6) — 逐次replay拒否・独立JTI両方承認
+TestParallelCollision  (3) — 2スレッド=1承認・10スレッド=1承認・ReplayGuard単体並列
+TestAuditLogEvents     (7) — purchase_approved/replay_detected 記録・token_id一致確認
+
+既存 197 + 新規 16 = 213 passed / 0 failed
+```
+
+### Problems
+
+**`from core.xxx import` vs `from src.core.xxx import` によるクラス同一性問題**
+
+verifier.py が `from core.token_verifier import InvalidPayloadError` を使い、
+テストが `from src.core.token_verifier import InvalidPayloadError` を使うと、
+同一ファイルから生成された2つの異なるクラスオブジェクトになる。
+`except InvalidPayloadError` がキャッチできず、スレッド内で例外が握りつぶされた。
+
+修正: verifier.py のインポートを `from src.core.xxx import` に統一。
+
+### Learnings
+
+- **Python の sys.path 二重登録は module identity を分裂させる**: `pythonpath = ["src", "."]` により `core.X` と `src.core.X` が別クラスになる。except/isinstance が静かに失敗する
+- **スレッドの未捕捉例外は pytest で PytestUnhandledThreadExceptionWarning になる**: 最初は `approved==1, rejected==0` というおかしな結果になり、これで問題を発見した
+- **`threading.Lock` 内の check+register は1操作**: この単純な設計で N スレッド競合が完全に制御できた
+
+### Next Action
+
+- [x] ReplayGuard 実装（完了）
+- [x] 16件テスト追加、213 passed（完了）
+- [x] EXP-006: Replay Burst Freeze へ進む
+
+---
+
+## EXP-006 — Replay Burst Freeze（異常バーストによる一時停止）
+
+**Date:** 2026-05-17
+**Status:** ✅ Completed
+**Owner:** Claude Code (claude-sonnet-4-6)
+
+### Goal
+
+短時間に replay_detected が連続発生したとき、スライディングウィンドウで異常バーストを検知し、
+支出を一時 freeze できるか検証する。
+SandboxVerifier と ReplayGuard の責務を増やさずに実現できるかを確認する。
+
+### Hypothesis
+
+> SandboxVerifier を変更せず外側に FreezeLayer でラップすれば、
+> バースト検知と freeze 発動をポリシー層として分離できる。
+
+### Setup
+
+```
+src/agentpass/sandbox/
+  burst_freeze.py  — BurstFreezeDetector (sliding window + threading.Lock, injectable timestamp)
+  freeze_layer.py  — FreezeLayer (SandboxVerifier をラップ; is_frozen()/record_replay() を呼ぶ)
+  errors.py        — SpendingFrozenError (http_status=503) 追記
+  audit_log.py     — make_spending_frozen_record() 追記
+```
+
+FreezeLayer のフロー:
+```
+1. is_frozen() → True  → spending_frozen 記録 + SpendingFrozenError(503)
+2. inner.verify(token) → 委譲
+3. InvalidPayloadError + "Replay attack detected" → record_replay()
+   → 新規 freeze 発動なら spending_frozen 記録
+4. 成功 → VerifiedClaims をそのまま返す
+```
+
+タイムスタンプは `now: float | None = None` で injectable → モックレスで時刻制御テストを実現。
+
+### Result
+
+```
+tests/sandbox/test_exp006_burst_freeze.py  — 22 tests
+
+TestBurstFreezeDetector (11) — 未到達・到達・window期限切れ・concurrent 1 trigger
+TestFreezeLayer         (6)  — 正常通過・単発replay非freeze・バーストfreeze・HTTP503
+TestAuditLogFreezeEvent (5)  — spending_frozen記録・burst_count・freeze後ゲート記録
+
+既存 213 + 新規 22 = 235 passed / 0 failed
+SandboxVerifier・ReplayGuard への変更: ゼロ
+```
+
+### Problems
+
+なし。FreezeLayer の `_REPLAY_SIGNAL = "Replay attack detected"` による文字列マッチングは
+sandbox 用途として許容範囲。本番なら専用例外クラスが望ましい。
+
+### Learnings
+
+- **ラッパーパターンで責務を無限に分離できる**: SandboxVerifier も ReplayGuard も触らずに freeze ポリシーを追加できた
+- **タイムスタンプ injection でモックレス時刻テストが可能**: `time.monotonic()` のデフォルトと injectable `now` の両立が有効
+- **freeze は「trigger 時」と「gate 時」の2箇所で記録が必要**: trigger=freeze を開始したイベント、gate=freeze 中にリクエストが来たイベント。両方が audit log にないと後から因果を追えない
+
+### Next Action
+
+- [x] BurstFreezeDetector / FreezeLayer 実装（完了）
+- [x] 22件テスト追加、235 passed（完了）
+- [x] EXP-005c: Agent Keypair Isolation へ進む
+
+---
+
+## EXP-005c — Agent Keypair Isolation（マルチエージェント鍵境界）
+
+**Date:** 2026-05-17
+**Status:** ✅ Completed
+**Owner:** Claude Code (claude-sonnet-4-6)
+
+### Goal
+
+エージェントごとに署名鍵を分離し、multi-agent 環境での trust boundary を検証する。
+「compromised な agent の鍵が他の agent に影響しないこと」と
+「signer の identity が audit log で追跡可能なこと」を確認する。
+
+### Hypothesis
+
+> JWT `kid` ヘッダで key_id を渡し、AgentKeyRegistry で `key_id → (agent_id, pubkey, status)` を管理すれば、
+> agent ごとの鍵分離・compromised 隔離・signer mismatch 拒否が実現できる。
+
+### Setup
+
+```
+src/agentpass/sandbox/
+  agent_key_registry.py — AgentKeyRegistry (key_id → agent_id + Ed25519PublicKey + status)
+  signer.py             — SandboxSigner (agent別署名 + JWT kid ヘッダ)
+  verifier.py           — optional key_registry パラメータ追加（最小拡張）
+  errors.py             — 4エラー追記
+  audit_log.py          — signer_verified / signer_rejected ファクトリ追記
+```
+
+検証フロー (SandboxVerifier + key_registry 有効時):
+```
+Step 0. jwt.get_unverified_header(token)["kid"] → key_id を取得
+Step 0b. registry.resolve(key_id) → (owner_agent_id, public_key)
+         CompromisedKeyError / UnknownKeyIdError → signer_rejected 記録 + raise
+Step 1-2. verify_token(token, resolved_pubkey, merchant_url) — 署名・exp・aud
+Step 2b. claims.agent_id != owner_agent_id → signer_rejected 記録 + SignerMismatchError(403)
+Step 3-5. replay / budget (既存と同じ)
+Step 6. signer_verified 記録 + VerifiedClaims 返却
+```
+
+追加エラー:
+```
+SignerMismatchError    403 SIGNER_MISMATCH
+CompromisedKeyError   403 SIGNER_COMPROMISED
+UnknownKeyIdError     401 UNKNOWN_KEY_ID
+UnknownAgentIdError   401 UNKNOWN_AGENT_ID
+```
+
+### Result
+
+```
+tests/sandbox/test_exp005c_agent_keypair_isolation.py  — 28 tests
+
+TestAgentKeyRegistry       (8) — 登録・解決・compromised・独立性確認
+TestSandboxSigner          (6) — kidヘッダ・sub一致・正しい鍵で検証可・別鍵で検証不可
+TestMultiAgentVerification (7) — agent-A鍵でA承認・B鍵でB承認・mismatch拒否・compromised隔離
+TestAuditLogSignerEvents   (7) — signer_verified記録・signer_rejected記録・フィールド確認
+
+既存 235 + 新規 28 = 263 passed / 0 failed
+```
+
+### Problems
+
+なし。JWT `kid` ヘッダの追加は PyJWT の `headers={"kid": key_id}` と
+`jwt.get_unverified_header()` だけで完結した。
+
+### Learnings
+
+- **JWT `kid` は標準ヘッダフィールドであり PyJWT が自然にサポート**: verify_token() は `kid` を無視して署名検証するため、既存関数を変更せずに multi-agent 対応できた
+- **Signer mismatch は「署名は正しいが identity が偽造されている」状態**: 署名検証が成功した後に `sub != key owner` を確認することで、鍵の流出による identity 偽造を検出できる
+- **compromised 隔離は「registry の status フラグ」だけで実現できる**: 分散 revocation や KMS は不要。sandbox 範囲では in-memory の status 管理で十分
+- **audit の `signer_rejected` に `signature_verified: bool` を含めることで因果が明確になる**: mismatch（署名OK・identity NG）と compromised（署名未確認・鍵NG）を区別して記録できる
+
+### Next Action
+
+- [x] AgentKeyRegistry / SandboxSigner 実装（完了）
+- [x] 28件テスト追加、263 passed（完了）
+- [ ] EXP-008: Key Rotation / Revocation（revoked 鍵の lifecycle 検証）
+- [ ] PyPI 実公開（`python -m build && twine upload`）— Wave 1 残タスク
 
 ---
 
 ## 次の実験候補
 
-| ID | タイトル | 仮説 | 優先度 | 状態 |
-|---|---|---|---|---|
-| EXP-004 | Minimal AgentPass Sandbox Purchase Flow | 使い捨てトークンだけでAIエージェントの安全なAPI購入を再現できる | 最高 | ✅ Completed |
-| EXP-005 | PyPI 実公開テスト | `python -m build && twine upload` が問題なく通る | 高 | 未着手 |
-| EXP-006 | マルチエージェント競合テスト | 複数エージェントが同一JTIを同時送信した場合のAnomalyDetector挙動 | 中 | 未着手 |
-| EXP-007 | CircuitBreaker スレッド安全性 | 100スレッド同時発行でも原子性が保たれる | 中 | 未着手 |
-| EXP-008 | Wave 2 信用スコア API PoC | `CreditScorer` を REST API として公開できるか | 低 | 未着手 |
+| ID | タイトル | 仮説 | 状態 |
+|---|---|---|---|
+| EXP-004 | Minimal Sandbox Purchase Flow | 使い捨てトークンだけで安全なAPI購入フローを再現できる | ✅ Completed |
+| EXP-005a | Budget Control | SandboxBudgetControl + HTTP 402 + replayable audit | ✅ Completed |
+| EXP-005b | JTI Collision | threading.Lock で N スレッド同時送信でも approved=1 を保証 | ✅ Completed |
+| EXP-006 | Replay Burst Freeze | FreezeLayer ラッパーで verifier を変えずに burst 検知・freeze | ✅ Completed |
+| EXP-005c | Agent Keypair Isolation | JWT kid + AgentKeyRegistry で multi-agent 鍵境界を実現 | ✅ Completed |
+| EXP-008 | Key Rotation / Revocation | revoked 鍵の旧トークン拒否・新鍵の受け入れを audit で追跡できる | 📋 設計中 |
+| EXP-009 | Distributed Replay Coordination | multi-process 環境での replay 安全性を検証できる | 🔭 候補 |
+| EXP-010 | Signer Reputation / Trust Scoring | signer 行動履歴から trust score を構築できる | 🔭 候補 |
