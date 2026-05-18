@@ -72,8 +72,10 @@ demo-1      | ================================================================
 ## Quick Start (ローカル / Docker なし)
 
 ```bash
-pip install agentpass uvicorn
+pip install agentpass-ai uvicorn
 ```
+
+> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`
 
 ```bash
 # Terminal 1

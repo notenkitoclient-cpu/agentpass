@@ -3,7 +3,7 @@ requires = ["setuptools>=72", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentpass"
+name = "agentpass-ai"
 version = "1.0.0b3"
 description = "Replay-safe authentication middleware for autonomous AI agents"
 readme = "README.md"
