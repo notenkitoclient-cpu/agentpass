@@ -1,0 +1,51 @@
+# AgentPass Minimal Demo
+# docker compose up
+#
+# Two services:
+#   merchant  FastAPI server on http://localhost:8000
+#   demo      Agent client that runs the full replay-safe flow and exits
+
+services:
+  merchant:
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile
+    command: python examples/merchant_api.py
+    ports:
+      - "8000:8000"
+    volumes:
+      - demo-keys:/app/examples/keys
+    environment:
+      MERCHANT_AUD: "https://agentpass-demo.local/v1/pay"
+      MERCHANT_HOST: "0.0.0.0"
+      MERCHANT_PORT: "8000"
+      KEYS_FILE: "/app/examples/keys/demo_keys.json"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 3s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+  demo:
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile
+    command: python examples/agent_client.py
+    volumes:
+      - demo-keys:/app/examples/keys
+    environment:
+      MERCHANT_AUD: "https://agentpass-demo.local/v1/pay"
+      MERCHANT_HOST: "merchant"
+      MERCHANT_PORT: "8000"
+      KEYS_FILE: "/app/examples/keys/demo_keys.json"
+    depends_on:
+      merchant:
+        condition: service_healthy
+
+volumes:
+  demo-keys:

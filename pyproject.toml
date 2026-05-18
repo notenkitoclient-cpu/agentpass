@@ -4,21 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentpass"
-version = "1.0.0-beta2"
-description = "M2M Wallet & Passport Infrastructure for AI Agents"
+version = "1.0.0b3"
+description = "Replay-safe authentication middleware for autonomous AI agents"
 readme = "README.md"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 authors = [
     {name = "AgentPass Contributors"},
 ]
 requires-python = ">=3.13"
-keywords = ["ai-agents", "m2m", "jwt", "authentication", "middleware", "payments"]
+keywords = ["ai-agents", "m2m", "jwt", "authentication", "middleware", "replay-safe"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Security",
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Framework :: FastAPI",
@@ -30,6 +31,11 @@ dependencies = [
     "pydantic>=2.10",
     "fastapi>=0.115",
 ]
+
+[project.urls]
+Homepage = "https://github.com/notenkitoclient-cpu/agentpass"
+Repository = "https://github.com/notenkitoclient-cpu/agentpass"
+"Bug Tracker" = "https://github.com/notenkitoclient-cpu/agentpass/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -45,7 +51,7 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-exclude = ["merchant*"]
+exclude = ["merchant*", "agentpass.sandbox*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -56,4 +62,5 @@ pythonpath = ["src", "."]
 dev = [
     "build>=1.5.0",
     "twine>=6.2.0",
+    "uvicorn>=0.47.0",
 ]

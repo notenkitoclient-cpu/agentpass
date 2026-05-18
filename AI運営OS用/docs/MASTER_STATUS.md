@@ -1,36 +1,40 @@
 # AgentPass MASTER STATUS
 
-Last Updated: 2026-05-17
+Last Updated: 2026-05-18
 
 ---
 
 # Current STATE
 
-STATE ID: STATE-2026-05-17-SESSION-END-STABLE
+STATE ID: STATE-2026-05-18-PYPI-RELEASE-READY
 
 Current Phase:
-Knowledge Governance and OSS Distribution Stabilization
+Production PyPI Release — Upload Pending
 
 Current Priority:
-State synchronization / onboarding stability / distribution readiness
+twine upload dist/* を実行して production PyPI 公開完了
 
 Current Focus:
-- AI-readable governance
-- onboarding clarity
-- public/private boundary preservation
-- distribution stability
-- developer experience optimization
+- dist/agentpass-1.0.0b3-py3-none-any.whl ビルド済み・twine check PASSED
+- dist/agentpass-1.0.0b3.tar.gz ビルド済み・twine check PASSED
+- sandbox exclusion 確認済み（wheel に含まれない）
+- LICENSE ファイル追加済み
+- 263 tests 全通過確認済み
+- git commit 済み（upload 待ち）
 
 Current Risks:
-- knowledge divergence between docs
-- onboarding drift
-- premature public expansion
-- internal strategy leakage
+- upload 前に PyPI token が必要（TWINE_PASSWORD 環境変数）
+- upload 後はロールバック不可
 
 Next Required Action:
-次セッション開始時にこのファイルを読み、
-TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
-推奨: TASK-PRODUCTION-PYPI-RELEASE（TestPyPI 検証済みのため）
+次セッション開始時に TASK-PRODUCTION-PYPI-RELEASE を ACTIVE に昇格させ、
+以下のコマンドを実行して upload を完了する:
+
+  TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-xxxx... uv run twine upload dist/*
+
+その後 production install verification を行う:
+  pip install agentpass==1.0.0b3
+  python -c "import agentpass; print(agentpass.__version__)"
 
 ---
 
@@ -40,7 +44,7 @@ TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
 - Title: セッション終了 — 次セッション開始時に TASK QUEUE から選択
 - Owner Channel: PM進捗管理
 - Status: STANDBY
-- Note: 次セッションの冒頭で P1 タスクを1つ ACTIVE に昇格させること
+- Note: 次セッションの冒頭で TASK-PRODUCTION-PYPI-RELEASE を ACTIVE に昇格させること
 
 ---
 
@@ -48,10 +52,10 @@ TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
 
 | Priority | Task ID | Task | Status | Owner Channel | Trigger | Notes |
 |---|---|---|---|---|---|---|
-| P1 | TASK-MINIMAL-DEMO-REPO | examples/ デモ構築 | QUEUED | 発信・広報室 | onboarding stabilization complete | copy-paste runnable demo |
+| P1 | TASK-MINIMAL-DEMO-REPO | examples/ デモ構築 | DONE | 発信・広報室 | onboarding stabilization complete | copy-paste runnable demo |
 | P1 | TASK-AI-OPERATING-MAP | AI運営OS構造図作成 | QUEUED | AIエージェント設計室 | governance stabilization | knowledge routing visualization |
 | P1 | TASK-KNOWLEDGE-SYNC-RULES | docs同期ルール定義 | QUEUED | PM進捗管理 | governance phase | prevent state divergence |
-| P1 | TASK-PRODUCTION-PYPI-RELEASE | 本番PyPI公開 | QUEUED | 技術相談室 | onboarding/demo stabilization | official public distribution |
+| P1 | TASK-PRODUCTION-PYPI-RELEASE | 本番PyPI公開 | UPLOAD-PENDING | 技術相談室 | onboarding/demo stabilization | dist/ ビルド済み・twine check PASSED・upload 待ち |
 | P2 | TASK-FIRST-OSS-POST | 初回OSS発信 | QUEUED | 発信・広報室 | production PyPI release | distribution discovery |
 | P2 | TASK-EXP008-REVOCATION-DESIGN | Token Revocation Layer設計 | PLANNED | Sandbox実験室 | distribution validation complete | revocation boundary experiment |
 | P2 | TASK-PYPROJECT-LICENSE-CLEANUP | SPDX license形式へ移行 | QUEUED | 技術相談室 | packaging stabilization | setuptools deprecation cleanup |
@@ -77,6 +81,7 @@ TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
 | TASK-OSS-ONBOARDING-POLISH | README onboarding最適化 | 2026-05-17 |
 | TASK-KNOWLEDGE-GOVERNANCE | DECISIONS.md作成と知識統制開始 | 2026-05-17 |
 | TASK-PAUSE-POINT-STABILIZATION | セッション終了状態の固定・メモリ更新・再開容易性確保 | 2026-05-17 |
+| TASK-MINIMAL-DEMO-REPO | examples/ デモ構築（merchant_api/agent_client/docker-compose） | 2026-05-18 |
 
 ---
 
@@ -116,6 +121,11 @@ TASK QUEUEの P1 タスクから1つを ACTIVE に昇格させる。
 - TestPyPI distribution verified
 - AI-readable governance structure operational
 - External API structure operational
+- Minimal demo repo operational (examples/ — docker compose up で動作確認済み)
+- Production dist built: agentpass-1.0.0b3 (wheel + sdist) — twine check PASSED
+- LICENSE file added (MIT)
+- sandbox excluded from wheel
+- upload pending (next session)
 
 ---
 

@@ -31,7 +31,7 @@ from core.token_verifier import (
 from identity.agent_signer import derive_agent_id
 from identity.credit_scorer import CreditScorer
 
-__version__ = "1.0.0-beta2"
+__version__ = "1.0.0b3"
 
 __all__ = [
     # ミドルウェア
