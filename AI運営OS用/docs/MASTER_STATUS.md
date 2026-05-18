@@ -122,6 +122,21 @@ Success Criteria:
 
 ---
 
+### Friction Audit Results (2026-05-18)
+
+| # | Target | 問題 | 深刻度 | 対応 |
+|---|--------|------|--------|------|
+| 1 | Python version mismatch | `requires-python = ">=3.13"` が README に未記載 | HIGH | 各 install 手順に `Requires Python 3.13+` を追記 |
+| 2 | install friction | Quick Demo install が bundled deps を重複列挙（`cryptography PyJWT`） | HIGH | `pip install agentpass-ai` のみに簡略化 |
+| 3 | install friction | ASGI install が bundled deps を重複列挙（`fastapi cryptography PyJWT httpx`） | MEDIUM | `pip install agentpass-ai uvicorn` のみに簡略化 |
+| 4 | docker onboarding | Dockerfile が `pip install -e .`（ローカルソース）で examples/README が「PyPI installed」と矛盾 | LOW | `pip install agentpass-ai uvicorn` に変更・`PYTHONPATH` 削除 |
+| 5 | README clarity | ASGI 例がプレースホルダー URL で単体実行不可、`examples/` への誘導なし | LOW | `examples/README.md` へのリンクを追記 |
+| 6 | install friction | `examples/merchant_api.py` docstring 内に `pip install agentpass`（旧名）が残存 | MEDIUM | `pip install agentpass-ai uvicorn` に修正 |
+
+All friction points resolved. import confusion: 問題なし（Note 表記が3箇所に存在）。
+
+---
+
 # COMPLETED TASKS
 
 | Task ID | Summary | Completed |

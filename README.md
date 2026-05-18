@@ -23,11 +23,14 @@ Agent  ──[AgentPass JWT]──▶  Merchant API
 
 ## 3-Minute Quick Demo
 
+> **Requires Python 3.13+**
+
 ```bash
-pip install agentpass-ai cryptography PyJWT
+pip install agentpass-ai
 ```
 
-> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`
+> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`  
+> `cryptography`, `PyJWT`, `fastapi`, `httpx`, `pydantic` are bundled — no separate install needed.
 
 ```python
 # quickdemo.py — python quickdemo.py
@@ -69,11 +72,14 @@ FastAPI / Starlette への組み込みは3ファイルで完了します。
 
 ### 1. インストール
 
+> **Requires Python 3.13+**
+
 ```bash
-pip install agentpass-ai fastapi uvicorn cryptography PyJWT httpx
+pip install agentpass-ai uvicorn
 ```
 
-> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`
+> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`  
+> `fastapi`, `cryptography`, `PyJWT`, `httpx`, `pydantic` are bundled.
 
 ### 2. 加盟店サーバー (`merchant.py`)
 
@@ -146,6 +152,8 @@ uvicorn merchant:app
 # Terminal 2
 python agent.py
 ```
+
+> **Note:** 上記は構成例です。ローカルで動かせる完全なデモは [`examples/`](examples/README.md) を参照してください。
 
 ---
 

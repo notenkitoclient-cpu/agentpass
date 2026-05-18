@@ -15,7 +15,7 @@ MERCHANT_AUD is an https:// URI as required by TokenRequest even though the
 local transport uses plain HTTP.  In production both would be HTTPS.
 
 Usage (local, two terminals):
-  pip install agentpass uvicorn
+  pip install agentpass-ai uvicorn
   python examples/merchant_api.py        # terminal 1
   python examples/agent_client.py        # terminal 2
 
