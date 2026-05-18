@@ -91,7 +91,7 @@ STATUS: INTERNAL ONLY
 
 | Priority | Task ID | Task | Status | Owner Channel | Trigger | Notes |
 |---|---|---|---|---|---|---|
-| P1 | TASK-FIRST-EXTERNAL-USER-VALIDATION | 初回外部ユーザー導入検証 | QUEUED | PM進捗管理 | production release completed | onboarding friction collection |
+| P1 | TASK-FIRST-EXTERNAL-USER-VALIDATION | 初回外部ユーザー導入検証 | ACTIVE | PM進捗管理 | production release completed | onboarding friction collection |
 | P1 | TASK-AI-OPERATING-MAP | AI運営OS構造図作成 | QUEUED | AIエージェント設計室 | governance stabilization | knowledge routing visualization |
 | P1 | TASK-KNOWLEDGE-SYNC-RULES | docs同期ルール定義 | QUEUED | PM進捗管理 | governance phase | prevent state divergence |
 
@@ -99,7 +99,26 @@ STATUS: INTERNAL ONLY
 
 # ACTIVE TASK
 
-NONE
+## TASK-FIRST-EXTERNAL-USER-VALIDATION
+
+Status: ACTIVE
+Started: 2026-05-18
+
+Goal:
+第三者が README のみで導入可能か検証する。
+
+Validation Targets:
+- install friction
+- import confusion
+- docker onboarding
+- README clarity
+- FastAPI integration
+- Python version mismatch
+
+Success Criteria:
+- 第三者 install success
+- README alone で demo 到達
+- friction points documented
 
 ---
 
@@ -151,3 +170,14 @@ Production Package:
 Import:
 ```python
 import agentpass
+```
+
+---
+
+## External Distribution Status
+
+- Production PyPI release completed
+- agentpass-ai 1.0.0b3 published
+- Docker onboarding completed
+- Initial OSS distribution started
+- X strategy planning phase entered

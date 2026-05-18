@@ -242,3 +242,12 @@ pytest --cov=src --cov-report=term-missing  # カバレッジ付き
 ## License
 
 MIT License — 商用利用・改変・再配布自由。
+
+---
+
+## Feedback
+
+Found onboarding friction or integration issues?
+
+Please open a GitHub issue:
+https://github.com/notenkitoclient-cpu/agentpass/issues
