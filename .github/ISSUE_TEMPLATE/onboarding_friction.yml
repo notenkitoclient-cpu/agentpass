@@ -1,0 +1,68 @@
+name: Onboarding Friction Report
+description: Report a friction point encountered during AgentPass setup or integration
+labels: ["onboarding", "friction"]
+body:
+  - type: dropdown
+    id: friction_type
+    attributes:
+      label: Friction Type
+      options:
+        - install failure
+        - import confusion
+        - README unclear
+        - Docker not working
+        - FastAPI integration issue
+        - Python version mismatch
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python Version
+      placeholder: "e.g. 3.12.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "e.g. macOS 14, Ubuntu 22.04, Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What did you try and what went wrong?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. pip install agentpass-ai
+        2. python quickdemo.py
+        3. ...
+    validations:
+      required: false
+
+  - type: input
+    id: readme_section
+    attributes:
+      label: Which README section were you following?
+      placeholder: "e.g. 3-Minute Quick Demo / ASGI Middleware Setup / examples/"
+    validations:
+      required: false

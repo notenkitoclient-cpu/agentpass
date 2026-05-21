@@ -1,8 +1,8 @@
 # AgentPass
 
-**Replay-safe authentication middleware for autonomous AI agents.**
+**AgentPass is a neutral trust infrastructure for AI agents.**
 
-Ed25519 署名済み JWT を使い、AIエージェント間（M2M）の認証をサードパーティサーバー不要で実現します。
+Delegated payment authorization · Replayable transaction audit · Sandbox-safe agent commerce · Multi-LLM compatible trust flows
 
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
@@ -21,25 +21,36 @@ Agent  ──[AgentPass JWT]──▶  Merchant API
 
 ---
 
-## 3-Minute Quick Demo
+## Try AgentPass in 3 Minutes
 
 > **Requires Python 3.13+**
+
+### Step 1 — Install
+
+**Recommended: uv**
+
+```bash
+uv venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+uv pip install agentpass-ai
+```
+
+**Alternative: pip**
 
 ```bash
 pip install agentpass-ai
 ```
 
-> **Note:** Install package: `agentpass-ai` / Import package: `agentpass`  
+> Install package: `agentpass-ai` / Import package: `agentpass`  
 > `cryptography`, `PyJWT`, `fastapi`, `httpx`, `pydantic` are bundled — no separate install needed.
 
+### Step 2 — Create `quickdemo.py`
+
 ```python
-# quickdemo.py — python quickdemo.py
 from agentpass import issue_token, verify_token, TokenRequest, generate_keypair
 
 ENDPOINT = "https://api.example.com/v1/query"
 
-# エージェントと検証側が同じ鍵ペアを共有するデモ。
-# 本番: エージェントが事前に公開鍵を加盟店へ登録する。
 private_key, public_key = generate_keypair()
 
 token = issue_token(
@@ -57,12 +68,27 @@ print(f"✓ Verified  agent={claims.agent_id}  amount={claims.amount} {claims.cu
 print(f"  token={token[:52]}...")
 ```
 
-Expected output:
+### Step 3 — Run
+
+```bash
+python quickdemo.py
+```
+
+### Success
+
+If you see this output, AgentPass is working correctly:
 
 ```
 ✓ Verified  agent=agent-demo-001  amount=0.001 JPY
-  token=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIi...
+  token=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZ2V...
 ```
+
+`✓ Verified` が表示されたら成功です。
+
+### Docker Demo
+
+Optional — not required for the first demo.  
+Replay-safe フローを Docker で試すには → [`examples/`](examples/README.md)
 
 ---
 

@@ -71,6 +71,8 @@ demo-1      | ================================================================
 
 ## Quick Start (ローカル / Docker なし)
 
+> **Requires Python 3.13+**
+
 ```bash
 pip install agentpass-ai uvicorn
 ```
