@@ -4,6 +4,27 @@
 
 Delegated payment authorization · Replayable transaction audit · Sandbox-safe agent commerce · Multi-LLM compatible trust flows
 
+---
+
+## Who is this for?
+
+AgentPass is designed for developers building:
+
+- AI agents that call paid APIs
+- MCP tools that need scoped authorization
+- sandbox commerce flows for autonomous agents
+- machine-to-machine workflows that require auditability
+- experiments around delegated AI payments
+
+Typical use cases:
+
+- issue a scoped token for an agent request
+- verify agent-to-API authorization
+- replay a transaction for audit/debugging
+- test budget-safe agent commerce in a sandbox
+
+---
+
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
               ▲ Ed25519 署名 + aud 固定 + jti 使い捨て
