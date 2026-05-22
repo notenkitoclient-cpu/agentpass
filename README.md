@@ -25,6 +25,23 @@ Typical use cases:
 
 ---
 
+## Why AgentPass exists
+
+AI agents can already:
+- call APIs
+- use tools
+- execute workflows
+
+But they still lack:
+- delegated authorization
+- replay-safe transaction verification
+- machine-readable audit trails
+- scoped trust between agents and APIs
+
+AgentPass experiments with these missing layers for agent-to-agent and agent-to-service interactions.
+
+---
+
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
               ▲ Ed25519 署名 + aud 固定 + jti 使い捨て
