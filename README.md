@@ -42,6 +42,25 @@ AgentPass experiments with these missing layers for agent-to-agent and agent-to-
 
 ---
 
+## Security Philosophy
+
+AgentPass builds on widely used cryptographic and validation libraries instead of custom security primitives.
+
+Core dependencies include:
+- `cryptography` — Ed25519 key generation and signing
+- `PyJWT` — JWT encoding and verification
+- `Pydantic` — schema validation
+- `FastAPI` — ASGI middleware integration
+
+The goal is to minimize custom trusted surface area while keeping transaction flows replayable, auditable, and sandbox-safe.
+
+Notes:
+- No external payment provider is required for the Quick Demo
+- Secrets are not embedded in the repository
+- Examples use generated sandbox keys only
+
+---
+
 ```
 Agent  ──[AgentPass JWT]──▶  Merchant API
               ▲ Ed25519 署名 + aud 固定 + jti 使い捨て
