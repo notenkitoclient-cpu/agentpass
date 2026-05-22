@@ -223,3 +223,12 @@ examples/keys/
 # Generic databases
 *.sqlite3
 *.db
+
+# -----------------------------------------------------------------------
+# Internal strategy / AI-OS operational docs (not for public distribution)
+# -----------------------------------------------------------------------
+STRATEGY.md
+SPIDERMAP.md
+TODO.md
+ai-instructions.md
+AI運営OS用/
